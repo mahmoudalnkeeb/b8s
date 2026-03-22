@@ -32,3 +32,5 @@ export * from './admin-create-coupon';
 export * from './admin-list-coupons';
 export * from './admin-deactivate-coupon';
 export * from './create-feedback';
+export * from './admin-list-feedback';
+export * from './admin-update-feedback';

@@ -80,4 +80,32 @@ export class AdminController {
       return next(error);
     }
   };
+
+  public listFeedback = async (
+    _req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    try {
+      const feedback = await DIContainer.adminListFeedback.execute();
+      return res.status(200).json(feedback);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  public updateFeedbackStatus = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    try {
+      const feedbackId = req.params['feedbackId'] as string;
+      const { status } = req.body;
+      const feedback = await DIContainer.adminUpdateFeedback.execute(feedbackId, status);
+      return res.status(200).json(feedback);
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

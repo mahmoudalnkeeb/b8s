@@ -7,6 +7,8 @@ import {
   useAdminCoupons,
   useAdminCreateCoupon,
   useAdminDeactivateCoupon,
+  useAdminFeedback,
+  useAdminUpdateFeedbackStatus,
 } from '../../api/admin';
 import type { AdminUser } from '../../api/admin';
 
@@ -17,6 +19,9 @@ export const Route = createFileRoute('/admin/')({
 function AdminPage() {
   const { data: users, isLoading: usersLoading, error: usersError } = useAdminUsers();
   const { data: coupons, isLoading: couponsLoading } = useAdminCoupons();
+  const { data: feedbackList, isLoading: feedbackLoading } = useAdminFeedback();
+  const updateFeedbackStatus = useAdminUpdateFeedbackStatus();
+  
   const addCUs = useAdminAddCUs();
   const createCoupon = useAdminCreateCoupon();
   const deactivateCoupon = useAdminDeactivateCoupon();
@@ -31,7 +36,7 @@ function AdminPage() {
   const [couponCuGrant, setCouponCuGrant] = useState('2');
   const [couponMaxUses, setCouponMaxUses] = useState('100');
 
-  const [activeTab, setActiveTab] = useState<'users' | 'coupons'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'coupons' | 'feedback'>('users');
 
   const handleAddCUs = async () => {
     if (!selectedUser || !cuAmount) return;
@@ -75,6 +80,15 @@ function AdminPage() {
     }
   };
 
+  const handleUpdateStatus = async (feedbackId: string, status: string) => {
+    try {
+      await updateFeedbackStatus.mutateAsync({ feedbackId, status });
+      toast.success(`Feedback status updated to ${status}`);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || 'Failed to update feedback');
+    }
+  };
+
   if (usersError) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -114,6 +128,9 @@ function AdminPage() {
         </button>
         <button onClick={() => setActiveTab('coupons')} className={tabClass('coupons')}>
           Coupons
+        </button>
+        <button onClick={() => setActiveTab('feedback')} className={tabClass('feedback')}>
+          Feedback
         </button>
       </div>
 
@@ -342,6 +359,66 @@ function AdminPage() {
                               Deactivate
                             </button>
                           )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Feedback Tab */}
+      {activeTab === 'feedback' && (
+        <div className="space-y-6">
+          <div className="border border-white/10 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#0a0a0a]">
+                    <th className="text-left font-mono text-[9px] text-white/40 uppercase tracking-widest px-4 py-3">Type</th>
+                    <th className="text-left font-mono text-[9px] text-white/40 uppercase tracking-widest px-4 py-3 min-w-[300px]">Content</th>
+                    <th className="text-left font-mono text-[9px] text-white/40 uppercase tracking-widest px-4 py-3">Status</th>
+                    <th className="text-left font-mono text-[9px] text-white/40 uppercase tracking-widest px-4 py-3">User ID</th>
+                    <th className="text-right font-mono text-[9px] text-white/40 uppercase tracking-widest px-4 py-3">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {feedbackLoading ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center font-mono text-xs text-white/30">Loading...</td>
+                    </tr>
+                  ) : feedbackList?.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-4 py-8 text-center font-mono text-xs text-white/30">No feedback submitted yet</td>
+                    </tr>
+                  ) : (
+                    feedbackList?.map((item) => (
+                      <tr key={item.feedbackId} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors">
+                        <td className="px-4 py-3">
+                          <span className={`font-mono text-[10px] uppercase tracking-widest px-2 py-0.5 ${item.type === 'bug' ? 'text-red-400 bg-red-400/10' : 'text-[#3D81CC] bg-[#3D81CC]/10'}`}>
+                            {item.type}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-sans text-xs text-white/80 whitespace-pre-wrap">{item.content}</td>
+                        <td className="px-4 py-3">
+                          <span className={`font-mono text-[10px] uppercase tracking-widest ${item.status === 'new' ? 'text-yellow-400' : item.status === 'reviewed' ? 'text-blue-400' : 'text-green-400'}`}>
+                            {item.status}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 font-mono text-[10px] text-white/40 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">{item.userId}</td>
+                        <td className="px-4 py-3 text-right">
+                          <select
+                            value={item.status}
+                            onChange={(e) => handleUpdateStatus(item.feedbackId, e.target.value)}
+                            className="bg-black border border-white/10 text-white font-mono text-[10px] px-2 py-1 focus:outline-none focus:border-[#3D81CC] transition-colors uppercase cursor-pointer"
+                          >
+                            <option value="new">New</option>
+                            <option value="reviewed">Review</option>
+                            <option value="resolved">Resolve</option>
+                          </select>
                         </td>
                       </tr>
                     ))

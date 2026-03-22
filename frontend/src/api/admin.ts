@@ -24,6 +24,15 @@ export interface AdminCoupon {
   createdAt: string;
 }
 
+export interface AdminFeedback {
+  feedbackId: string;
+  userId: string;
+  type: 'bug' | 'suggestion';
+  content: string;
+  status: 'new' | 'reviewed' | 'resolved';
+  createdAt?: string;
+}
+
 export const adminApi = {
   listUsers: async (): Promise<AdminUser[]> => {
     const response = await apiClient.get('/admin/users');
@@ -43,6 +52,14 @@ export const adminApi = {
   },
   deactivateCoupon: async (code: string) => {
     const response = await apiClient.patch(`/admin/coupons/${code}/deactivate`);
+    return response.data;
+  },
+  listFeedback: async (): Promise<AdminFeedback[]> => {
+    const response = await apiClient.get('/admin/feedback');
+    return response.data;
+  },
+  updateFeedbackStatus: async (feedbackId: string, status: string) => {
+    const response = await apiClient.patch(`/admin/feedback/${feedbackId}`, { status });
     return response.data;
   },
 };
@@ -83,5 +100,21 @@ export const useAdminDeactivateCoupon = () => {
   return useMutation({
     mutationFn: adminApi.deactivateCoupon,
     onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'coupons'] }),
+  });
+};
+
+export const useAdminFeedback = () => {
+  return useQuery({
+    queryKey: ['admin', 'feedback'],
+    queryFn: adminApi.listFeedback,
+  });
+};
+
+export const useAdminUpdateFeedbackStatus = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ feedbackId, status }: { feedbackId: string; status: string }) =>
+      adminApi.updateFeedbackStatus(feedbackId, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['admin', 'feedback'] }),
   });
 };

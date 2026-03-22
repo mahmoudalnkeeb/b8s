@@ -3,7 +3,7 @@ import { FeedbackModel } from '../../db/models';
 import crypto from 'crypto';
 
 export class MongoFeedbackRepository implements IFeedbackRepository {
-  async create(data: Omit<FeedbackData, 'status'>): Promise<FeedbackData> {
+  async create(data: Omit<FeedbackData, 'status' | 'createdAt'>): Promise<FeedbackData> {
     const feedback = new FeedbackModel({
       feedbackId: data.feedbackId || crypto.randomUUID().replace(/-/g, ''),
       userId: data.userId,
@@ -19,17 +19,43 @@ export class MongoFeedbackRepository implements IFeedbackRepository {
       type: saved.type as any,
       content: saved.content,
       status: saved.status as any,
+      createdAt: saved.createdAt,
     };
   }
 
   async listAll(): Promise<FeedbackData[]> {
     const list = await FeedbackModel.find().sort({ createdAt: -1 });
-    return list.map(item => ({
+    return list.map((item) => ({
       feedbackId: item.feedbackId,
       userId: item.userId,
       type: item.type as any,
       content: item.content,
       status: item.status as any,
+      createdAt: item.createdAt,
     }));
+  }
+
+  async updateStatus(
+    feedbackId: string,
+    status: 'new' | 'reviewed' | 'resolved',
+  ): Promise<FeedbackData> {
+    const updated = await FeedbackModel.findOneAndUpdate(
+      { feedbackId },
+      { $set: { status } },
+      { new: true },
+    );
+
+    if (!updated) {
+      throw new Error('Feedback not found');
+    }
+
+    return {
+      feedbackId: updated.feedbackId,
+      userId: updated.userId,
+      type: updated.type as any,
+      content: updated.content,
+      status: updated.status as any,
+      createdAt: updated.createdAt,
+    };
   }
 }

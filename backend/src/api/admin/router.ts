@@ -17,5 +17,8 @@ adminRouter.post('/users/:userId/add-cus', controller.addCUs);
 adminRouter.get('/coupons', controller.listCoupons);
 adminRouter.post('/coupons', controller.createCoupon);
 adminRouter.patch('/coupons/:code/deactivate', controller.deactivateCoupon);
+// Feedback management
+adminRouter.get('/feedback', controller.listFeedback);
+adminRouter.patch('/feedback/:feedbackId', controller.updateFeedbackStatus);
 
 export default adminRouter;

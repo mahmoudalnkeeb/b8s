@@ -48,6 +48,8 @@ import {
   AdminListCouponsUseCase,
   AdminDeactivateCouponUseCase,
   CreateFeedbackUseCase,
+  AdminListFeedbackUseCase,
+  AdminUpdateFeedbackUseCase,
 } from '../../application/use-cases';
 import { env } from '../loaders/env';
 
@@ -161,4 +163,6 @@ export class DIContainer {
 
   // Use Cases - Feedback
   static readonly createFeedback = new CreateFeedbackUseCase(this.feedbackRepo);
+  static readonly adminListFeedback = new AdminListFeedbackUseCase(this.feedbackRepo);
+  static readonly adminUpdateFeedback = new AdminUpdateFeedbackUseCase(this.feedbackRepo);
 }
