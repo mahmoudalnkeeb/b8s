@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from '../hooks/use-auth';
 
 export const Route = createFileRoute('/')({
@@ -27,6 +28,7 @@ const fadeIn = {
 function LandingPage() {
   const { isAuthenticated } = useAuth();
   const [activeSection, setActiveSection] = useState('index');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const sections = ['index', 'features', 'pricing', 'get-started'];
@@ -75,15 +77,17 @@ function LandingPage() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="fixed top-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-white/10"
+        className="fixed top-0 w-full z-50 bg-black/90 backdrop-blur-md border-b border-white/10"
       >
-        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 h-20 flex justify-between items-center">
-          <div className="bg-[#3D81CC] text-white font-black font-sans text-xl tracking-tighter w-12 h-12 flex items-center justify-center shrink-0">
+        <div className="w-full max-w-[1600px] mx-auto px-6 md:px-12 lg:px-20 h-20 flex justify-between items-center relative z-50">
+          <Link to="/" onClick={() => setIsMobileMenuOpen(false)} className="bg-[#3D81CC] text-white font-black font-sans text-xl tracking-tighter w-12 h-12 flex items-center justify-center shrink-0 no-underline">
             B8s
-          </div>
-          <nav className="flex items-center gap-2">
+          </Link>
+          
+          {/* Desktop Nav */}
+          <nav className="hidden md:flex items-center gap-2">
             <div className="flex bg-[#111] border border-white/10 p-1">
-              <a href="#index" className={getNavClass('index') + ' hidden md:inline-block'}>
+              <a href="#index" className={getNavClass('index')}>
                 <span className="opacity-50 mr-1 sm:mr-2">00</span>HOME
               </a>
               <a href="#features" className={getNavClass('features')}>
@@ -97,24 +101,108 @@ function LandingPage() {
               </a>
             </div>
             
-            <div className="ml-2 sm:ml-4 flex items-center gap-2">
+            <div className="ml-4 flex items-center gap-2">
               {isAuthenticated ? (
-                <Link to="/conversations/my" className="bg-[#3D81CC] text-white font-mono text-[10px] sm:text-xs px-3 sm:px-4 py-2.5 transition-colors hover:bg-white hover:text-black uppercase tracking-widest border border-[#3D81CC]">
+                <Link to="/conversations/my" className="bg-[#3D81CC] text-white font-mono text-xs px-4 py-2.5 transition-colors hover:bg-white hover:text-black uppercase tracking-widest border border-[#3D81CC]">
                   Dashboard
                 </Link>
               ) : (
                 <>
-                  <Link to="/auth/login" className="hidden sm:inline-block font-mono text-xs px-4 py-2.5 text-white/60 hover:text-white uppercase tracking-widest transition-colors">
+                  <Link to="/auth/login" className="font-mono text-xs px-4 py-2.5 text-white/60 hover:text-white uppercase tracking-widest transition-colors">
                     Login
                   </Link>
-                  <Link to="/auth/register" className="bg-white/10 text-white font-mono text-[10px] sm:text-xs px-3 sm:px-4 py-2.5 transition-colors hover:bg-[#3D81CC] hover:text-white uppercase tracking-widest border border-white/20">
+                  <Link to="/auth/register" className="bg-white/10 text-white font-mono text-xs px-4 py-2.5 transition-colors hover:bg-[#3D81CC] hover:text-white uppercase tracking-widest border border-white/20">
                     Get Started
                   </Link>
                 </>
               )}
             </div>
           </nav>
+
+          {/* Mobile Toggle */}
+          <button 
+            className="md:hidden flex items-center justify-center w-12 h-12 text-white hover:bg-white/10 transition-colors"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            aria-label="Toggle Menu"
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </div>
+
+        {/* Mobile Menu */}
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "100vh", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.3, ease: 'easeInOut' }}
+              className="absolute top-0 left-0 w-full bg-black/95 backdrop-blur-xl border-b border-white/10 overflow-hidden md:hidden z-40 pt-20"
+            >
+              <div className="flex flex-col h-full bg-[#111] w-full px-6 py-8">
+                <nav className="flex flex-col gap-4 text-center mt-8">
+                  <a 
+                    href="#index" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="font-mono text-xl uppercase tracking-widest py-4 border-b border-white/10 text-white/80 hover:text-[#3D81CC] transition-colors"
+                  >
+                    Home
+                  </a>
+                  <a 
+                    href="#features" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="font-mono text-xl uppercase tracking-widest py-4 border-b border-white/10 text-white/80 hover:text-[#3D81CC] transition-colors"
+                  >
+                    Features
+                  </a>
+                  <a 
+                    href="#pricing" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="font-mono text-xl uppercase tracking-widest py-4 border-b border-white/10 text-white/80 hover:text-[#3D81CC] transition-colors"
+                  >
+                    Pricing
+                  </a>
+                  <a 
+                    href="#get-started" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="font-mono text-xl uppercase tracking-widest py-4 border-b border-white/10 text-white/80 hover:text-[#3D81CC] transition-colors"
+                  >
+                    Start
+                  </a>
+                </nav>
+
+                <div className="mt-auto flex flex-col gap-4 pb-20">
+                  {isAuthenticated ? (
+                    <Link 
+                      to="/conversations/my" 
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="bg-[#3D81CC] text-center text-white font-mono text-sm py-4 transition-colors hover:bg-white hover:text-black uppercase tracking-widest w-full"
+                    >
+                      Go to Dashboard
+                    </Link>
+                  ) : (
+                    <>
+                      <Link 
+                        to="/auth/login" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-center font-mono text-sm py-4 text-white/60 hover:text-white uppercase tracking-widest transition-colors w-full border border-white/10 bg-black/50"
+                      >
+                        Login
+                      </Link>
+                      <Link 
+                        to="/auth/register" 
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-center bg-[#3D81CC] text-white font-mono text-sm py-4 transition-colors hover:bg-white hover:text-black uppercase tracking-widest w-full"
+                      >
+                        Get Started Free
+                      </Link>
+                    </>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.header>
 
       <div className="relative z-10 w-full max-w-[1600px] mx-auto min-h-screen px-6 md:px-12 lg:px-20 pt-40">

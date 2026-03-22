@@ -15,6 +15,8 @@ import {
   ShieldCheck,
   Lightbulb,
   BookOpen,
+  Menu,
+  X,
 } from 'lucide-react';
 import { useMyConversations, useDeleteConversation } from '../api/conversations';
 import { usePinnedAgents } from '../api/agents';
@@ -22,7 +24,7 @@ import { useBillingBalance } from '../api/billing';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../hooks/use-auth';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 
 export const Route = createRootRoute({
@@ -33,7 +35,31 @@ function RootLayout() {
   const { isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth >= 768;
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      setIsSidebarOpen(false);
+    }
+  }, [location.pathname]);
+
   const deleteConversation = useDeleteConversation();
   const { confirm } = useConfirm();
 
@@ -103,14 +129,23 @@ function RootLayout() {
           Skip to content
         </a>
         <Toaster theme="dark" position="bottom-right" richColors />
+        {/* Mobile Overlay */}
+        {showSidebar && isSidebarOpen && (
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+            aria-hidden="true"
+          />
+        )}
+
         {/* Sidebar */}
         {showSidebar && (
           <aside
             role="navigation"
             aria-label="Main navigation"
             className={cn(
-              'flex flex-col border-r border-white/10 bg-black transition-all duration-300 relative shrink-0',
-              isSidebarOpen ? 'w-64' : 'w-16',
+              'flex flex-col border-r border-white/10 bg-black transition-transform duration-300 z-50 shrink-0 h-full fixed md:relative',
+              isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-16',
             )}
           >
             {/* Toggle Button */}
@@ -119,7 +154,7 @@ function RootLayout() {
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-                  className="absolute -right-3 top-10 z-50 bg-[#0a0a0a] border border-white/10 p-1 hover:text-[#3D81CC] text-white/40 transition-colors"
+                  className="absolute -right-3 top-10 z-50 bg-[#0a0a0a] border border-white/10 p-1 hover:text-[#3D81CC] text-white/40 transition-colors hidden md:block"
                 >
                   {isSidebarOpen ? (
                     <ChevronLeft className="h-3 w-3" />
@@ -128,7 +163,7 @@ function RootLayout() {
                   )}
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">
+              <TooltipContent side="right" className="hidden md:block">
                 {isSidebarOpen ? 'Collapse' : 'Expand'}
               </TooltipContent>
             </Tooltip>
@@ -144,9 +179,18 @@ function RootLayout() {
                   B8s
                 </div>
                 {isSidebarOpen && (
-                  <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
-                    Blueprints
-                  </span>
+                  <>
+                    <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
+                      Blueprints
+                    </span>
+                    <button 
+                      onClick={() => setIsSidebarOpen(false)}
+                      className="ml-auto p-1.5 md:hidden text-white/40 hover:text-white"
+                      aria-label="Close sidebar"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </>
                 )}
               </Link>
             </div>
@@ -306,8 +350,28 @@ function RootLayout() {
         )}
 
         <main id="main-content" role="main" className="flex-1 flex flex-col overflow-hidden relative h-full">
-
-          <div className="flex-1 overflow-y-auto h-full w-full">
+          {showSidebar && (
+            <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 shrink-0 bg-black z-30">
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => setIsSidebarOpen(true)} 
+                  className="p-1.5 -ml-1.5 hover:bg-white/10 rounded-md transition-colors text-white/60 hover:text-white"
+                  aria-label="Open sidebar"
+                >
+                  <Menu className="h-5 w-5" />
+                </button>
+                <div className="bg-[#3D81CC] text-white font-black font-sans text-sm tracking-tighter w-8 h-8 flex items-center justify-center shrink-0">
+                  B8s
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link to="/agents" className="px-3 py-1.5 bg-white/10 hover:bg-[#3D81CC] text-white text-xs font-mono uppercase tracking-widest transition-colors border border-white/20 hover:border-[#3D81CC]">
+                  New Chat
+                </Link>
+              </div>
+            </div>
+          )}
+          <div className="flex-1 overflow-y-auto h-full w-full relative">
             <Outlet />
           </div>
         </main>
