@@ -108,4 +108,21 @@ export class AdminController {
       return next(error);
     }
   };
+
+  public getFeedbackById = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    try {
+      const feedbackId = req.params['feedbackId'] as string;
+      const feedback = await DIContainer.adminGetFeedbackById.execute(feedbackId);
+      if (!feedback) {
+        return res.status(404).json({ error: 'Feedback not found' });
+      }
+      return res.status(200).json(feedback);
+    } catch (error) {
+      return next(error);
+    }
+  };
 }

@@ -34,3 +34,4 @@ export * from './admin-deactivate-coupon';
 export * from './create-feedback';
 export * from './admin-list-feedback';
 export * from './admin-update-feedback';
+export * from './admin-get-feedback-by-id';

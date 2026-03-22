@@ -35,6 +35,20 @@ export class MongoFeedbackRepository implements IFeedbackRepository {
     }));
   }
 
+  async getById(feedbackId: string): Promise<FeedbackData | null> {
+    const item = await FeedbackModel.findOne({ feedbackId });
+    if (!item) return null;
+
+    return {
+      feedbackId: item.feedbackId,
+      userId: item.userId,
+      type: item.type as any,
+      content: item.content,
+      status: item.status as any,
+      createdAt: item.createdAt,
+    };
+  }
+
   async updateStatus(
     feedbackId: string,
     status: 'new' | 'reviewed' | 'resolved',

@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import {
@@ -17,6 +17,7 @@ export const Route = createFileRoute('/admin/')({
 });
 
 function AdminPage() {
+  const navigate = useNavigate();
   const { data: users, isLoading: usersLoading, error: usersError } = useAdminUsers();
   const { data: coupons, isLoading: couponsLoading } = useAdminCoupons();
   const { data: feedbackList, isLoading: feedbackLoading } = useAdminFeedback();
@@ -410,15 +411,23 @@ function AdminPage() {
                         </td>
                         <td className="px-4 py-3 font-mono text-[10px] text-white/40 whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px]">{item.userId}</td>
                         <td className="px-4 py-3 text-right">
-                          <select
-                            value={item.status}
-                            onChange={(e) => handleUpdateStatus(item.feedbackId, e.target.value)}
-                            className="bg-black border border-white/10 text-white font-mono text-[10px] px-2 py-1 focus:outline-none focus:border-[#3D81CC] transition-colors uppercase cursor-pointer"
-                          >
-                            <option value="new">New</option>
-                            <option value="reviewed">Review</option>
-                            <option value="resolved">Resolve</option>
-                          </select>
+                          <div className="flex items-center justify-end gap-3">
+                            <button
+                                onClick={() => navigate({ to: '/admin/feedback/$feedbackId', params: { feedbackId: item.feedbackId } })}
+                                className="font-mono text-[10px] text-white/40 uppercase tracking-widest hover:text-[#3D81CC] transition-colors bg-transparent border-none cursor-pointer"
+                            >
+                                View
+                            </button>
+                            <select
+                              value={item.status}
+                              onChange={(e) => handleUpdateStatus(item.feedbackId, e.target.value)}
+                              className="bg-black border border-white/10 text-white font-mono text-[10px] px-2 py-1 focus:outline-none focus:border-[#3D81CC] transition-colors uppercase cursor-pointer"
+                            >
+                              <option value="new">New</option>
+                              <option value="reviewed">Review</option>
+                              <option value="resolved">Resolve</option>
+                            </select>
+                          </div>
                         </td>
                       </tr>
                     ))

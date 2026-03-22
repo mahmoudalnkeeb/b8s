@@ -22,6 +22,7 @@ import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as ChatNewAgentIdRouteImport } from './routes/chat/new/$agentId'
+import { Route as AdminFeedbackFeedbackIdRouteImport } from './routes/admin/feedback/$feedbackId'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -88,6 +89,11 @@ const ChatNewAgentIdRoute = ChatNewAgentIdRouteImport.update({
   path: '/chat/new/$agentId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminFeedbackFeedbackIdRoute = AdminFeedbackFeedbackIdRouteImport.update({
+  id: '/admin/feedback/$feedbackId',
+  path: '/admin/feedback/$feedbackId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -102,6 +108,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/agents/': typeof AgentsIndexRoute
   '/tools/': typeof ToolsIndexRoute
+  '/admin/feedback/$feedbackId': typeof AdminFeedbackFeedbackIdRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
 }
 export interface FileRoutesByTo {
@@ -117,6 +124,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/agents': typeof AgentsIndexRoute
   '/tools': typeof ToolsIndexRoute
+  '/admin/feedback/$feedbackId': typeof AdminFeedbackFeedbackIdRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
 }
 export interface FileRoutesById {
@@ -133,6 +141,7 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/agents/': typeof AgentsIndexRoute
   '/tools/': typeof ToolsIndexRoute
+  '/admin/feedback/$feedbackId': typeof AdminFeedbackFeedbackIdRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
 }
 export interface FileRouteTypes {
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/agents/'
     | '/tools/'
+    | '/admin/feedback/$feedbackId'
     | '/chat/new/$agentId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -165,6 +175,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/agents'
     | '/tools'
+    | '/admin/feedback/$feedbackId'
     | '/chat/new/$agentId'
   id:
     | '__root__'
@@ -180,6 +191,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/agents/'
     | '/tools/'
+    | '/admin/feedback/$feedbackId'
     | '/chat/new/$agentId'
   fileRoutesById: FileRoutesById
 }
@@ -196,6 +208,7 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
+  AdminFeedbackFeedbackIdRoute: typeof AdminFeedbackFeedbackIdRoute
   ChatNewAgentIdRoute: typeof ChatNewAgentIdRoute
 }
 
@@ -292,6 +305,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ChatNewAgentIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/feedback/$feedbackId': {
+      id: '/admin/feedback/$feedbackId'
+      path: '/admin/feedback/$feedbackId'
+      fullPath: '/admin/feedback/$feedbackId'
+      preLoaderRoute: typeof AdminFeedbackFeedbackIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -308,6 +328,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
+  AdminFeedbackFeedbackIdRoute: AdminFeedbackFeedbackIdRoute,
   ChatNewAgentIdRoute: ChatNewAgentIdRoute,
 }
 export const routeTree = rootRouteImport

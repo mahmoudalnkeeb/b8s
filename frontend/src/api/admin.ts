@@ -58,6 +58,10 @@ export const adminApi = {
     const response = await apiClient.get('/admin/feedback');
     return response.data;
   },
+  getFeedbackById: async (feedbackId: string): Promise<AdminFeedback> => {
+    const response = await apiClient.get(`/admin/feedback/${feedbackId}`);
+    return response.data;
+  },
   updateFeedbackStatus: async (feedbackId: string, status: string) => {
     const response = await apiClient.patch(`/admin/feedback/${feedbackId}`, { status });
     return response.data;
@@ -107,6 +111,14 @@ export const useAdminFeedback = () => {
   return useQuery({
     queryKey: ['admin', 'feedback'],
     queryFn: adminApi.listFeedback,
+  });
+};
+
+export const useAdminFeedbackById = (feedbackId: string) => {
+  return useQuery({
+    queryKey: ['admin', 'feedback', feedbackId],
+    queryFn: () => adminApi.getFeedbackById(feedbackId),
+    enabled: !!feedbackId,
   });
 };
 

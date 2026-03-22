@@ -12,5 +12,6 @@ export interface FeedbackData {
 export interface IFeedbackRepository {
   create(data: Omit<FeedbackData, 'status' | 'createdAt'>): Promise<FeedbackData>;
   listAll(): Promise<FeedbackData[]>;
+  getById(feedbackId: string): Promise<FeedbackData | null>;
   updateStatus(feedbackId: string, status: 'new' | 'reviewed' | 'resolved'): Promise<FeedbackData>;
 }
