@@ -31,3 +31,4 @@ export * from './admin-add-cus';
 export * from './admin-create-coupon';
 export * from './admin-list-coupons';
 export * from './admin-deactivate-coupon';
+export * from './create-feedback';

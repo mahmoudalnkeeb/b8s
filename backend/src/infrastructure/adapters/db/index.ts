@@ -4,3 +4,4 @@ export * from './mongo-tool-repo';
 export * from './mongo-user-repo';
 export * from './mongo-kb-repo';
 export * from './mongo-billing-repo';
+export * from './mongo-feedback-repo';

@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ToolsIndexRouteImport } from './routes/tools/index'
 import { Route as AgentsIndexRouteImport } from './routes/agents/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ConversationsMyRouteImport } from './routes/conversations/my'
 import { Route as ChatConversationIdRouteImport } from './routes/chat/$conversationId'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
@@ -24,6 +26,11 @@ import { Route as ChatNewAgentIdRouteImport } from './routes/chat/new/$agentId'
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DiscoverRoute = DiscoverRouteImport.update({
@@ -44,6 +51,11 @@ const ToolsIndexRoute = ToolsIndexRouteImport.update({
 const AgentsIndexRoute = AgentsIndexRouteImport.update({
   id: '/agents/',
   path: '/agents/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConversationsMyRoute = ConversationsMyRouteImport.update({
@@ -80,12 +92,14 @@ const ChatNewAgentIdRoute = ChatNewAgentIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
+  '/feedback': typeof FeedbackRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/chat/$conversationId': typeof ChatConversationIdRoute
   '/conversations/my': typeof ConversationsMyRoute
+  '/admin/': typeof AdminIndexRoute
   '/agents/': typeof AgentsIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
@@ -93,12 +107,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
+  '/feedback': typeof FeedbackRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/chat/$conversationId': typeof ChatConversationIdRoute
   '/conversations/my': typeof ConversationsMyRoute
+  '/admin': typeof AdminIndexRoute
   '/agents': typeof AgentsIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
@@ -107,12 +123,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
+  '/feedback': typeof FeedbackRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/chat/$conversationId': typeof ChatConversationIdRoute
   '/conversations/my': typeof ConversationsMyRoute
+  '/admin/': typeof AdminIndexRoute
   '/agents/': typeof AgentsIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
@@ -122,12 +140,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/discover'
+    | '/feedback'
     | '/settings'
     | '/agents/$agentId'
     | '/auth/login'
     | '/auth/register'
     | '/chat/$conversationId'
     | '/conversations/my'
+    | '/admin/'
     | '/agents/'
     | '/tools/'
     | '/chat/new/$agentId'
@@ -135,12 +155,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/discover'
+    | '/feedback'
     | '/settings'
     | '/agents/$agentId'
     | '/auth/login'
     | '/auth/register'
     | '/chat/$conversationId'
     | '/conversations/my'
+    | '/admin'
     | '/agents'
     | '/tools'
     | '/chat/new/$agentId'
@@ -148,12 +170,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/discover'
+    | '/feedback'
     | '/settings'
     | '/agents/$agentId'
     | '/auth/login'
     | '/auth/register'
     | '/chat/$conversationId'
     | '/conversations/my'
+    | '/admin/'
     | '/agents/'
     | '/tools/'
     | '/chat/new/$agentId'
@@ -162,12 +186,14 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DiscoverRoute: typeof DiscoverRoute
+  FeedbackRoute: typeof FeedbackRoute
   SettingsRoute: typeof SettingsRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   ChatConversationIdRoute: typeof ChatConversationIdRoute
   ConversationsMyRoute: typeof ConversationsMyRoute
+  AdminIndexRoute: typeof AdminIndexRoute
   AgentsIndexRoute: typeof AgentsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   ChatNewAgentIdRoute: typeof ChatNewAgentIdRoute
@@ -180,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/discover': {
@@ -208,6 +241,13 @@ declare module '@tanstack/react-router' {
       path: '/agents'
       fullPath: '/agents/'
       preLoaderRoute: typeof AgentsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/conversations/my': {
@@ -258,12 +298,14 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiscoverRoute: DiscoverRoute,
+  FeedbackRoute: FeedbackRoute,
   SettingsRoute: SettingsRoute,
   AgentsAgentIdRoute: AgentsAgentIdRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   ChatConversationIdRoute: ChatConversationIdRoute,
   ConversationsMyRoute: ConversationsMyRoute,
+  AdminIndexRoute: AdminIndexRoute,
   AgentsIndexRoute: AgentsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   ChatNewAgentIdRoute: ChatNewAgentIdRoute,

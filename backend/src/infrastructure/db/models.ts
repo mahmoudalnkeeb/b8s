@@ -144,6 +144,16 @@ export interface IAgent extends Document {
   updatedAt: Date;
 }
 
+export interface IFeedback extends Document {
+  feedbackId: string;
+  userId: string;
+  type: 'bug' | 'suggestion';
+  content: string;
+  status: 'new' | 'reviewed' | 'resolved';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 export interface IUserPin extends Document {
   userId: string;
   agentId: string;
@@ -291,6 +301,17 @@ const AgentSchema = new Schema<IAgent>(
   { timestamps: true },
 );
 
+const FeedbackSchema = new Schema<IFeedback>(
+  {
+    feedbackId: { type: String, required: true, unique: true },
+    userId: { type: String, required: true, index: true },
+    type: { type: String, enum: ['bug', 'suggestion'], required: true },
+    content: { type: String, required: true },
+    status: { type: String, enum: ['new', 'reviewed', 'resolved'], default: 'new' },
+  },
+  { timestamps: true }
+);
+
 const UserPinSchema = new Schema<IUserPin>(
   {
     userId: { type: String, required: true, index: true },
@@ -363,3 +384,4 @@ export const IngestionJobModel = model<IIngestionJob>('IngestionJob', IngestionJ
 export const BillingAccountModel = model<IBillingAccount>('BillingAccount', BillingAccountSchema);
 export const CouponModel = model<ICoupon>('Coupon', CouponSchema);
 export const UsageLogModel = model<IUsageLog>('UsageLog', UsageLogSchema);
+export const FeedbackModel = model<IFeedback>('Feedback', FeedbackSchema);

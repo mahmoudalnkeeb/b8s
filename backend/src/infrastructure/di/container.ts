@@ -8,6 +8,7 @@ import {
   MongoKnowledgeBaseRepository,
   MongoBillingRepository,
   MongoCouponRepository,
+  MongoFeedbackRepository,
 } from '../adapters/db';
 import { ToolExecutionAdapter, MemoryServiceAdapter, RagServiceAdapter } from '../adapters/tools';
 import { BcryptPasswordHasher, JwtTokenService } from '../adapters/auth';
@@ -46,6 +47,7 @@ import {
   AdminCreateCouponUseCase,
   AdminListCouponsUseCase,
   AdminDeactivateCouponUseCase,
+  CreateFeedbackUseCase,
 } from '../../application/use-cases';
 import { env } from '../loaders/env';
 
@@ -58,6 +60,7 @@ export class DIContainer {
   static readonly kbRepo = new MongoKnowledgeBaseRepository();
   static readonly billingRepo = new MongoBillingRepository();
   static readonly couponRepo = new MongoCouponRepository();
+  static readonly feedbackRepo = new MongoFeedbackRepository();
 
   // Adapters for internal services
   static readonly memoryService = new MemoryServiceAdapter();
@@ -155,4 +158,7 @@ export class DIContainer {
   static readonly adminCreateCoupon = new AdminCreateCouponUseCase(this.couponRepo);
   static readonly adminListCoupons = new AdminListCouponsUseCase(this.couponRepo);
   static readonly adminDeactivateCoupon = new AdminDeactivateCouponUseCase(this.couponRepo);
+
+  // Use Cases - Feedback
+  static readonly createFeedback = new CreateFeedbackUseCase(this.feedbackRepo);
 }

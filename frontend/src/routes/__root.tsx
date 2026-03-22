@@ -13,6 +13,7 @@ import {
   Wrench,
   Bot,
   ShieldCheck,
+  Lightbulb,
 } from 'lucide-react';
 import { useMyConversations, useDeleteConversation } from '../api/conversations';
 import { usePinnedAgents } from '../api/agents';
@@ -80,11 +81,12 @@ function RootLayout() {
       isActive && 'text-white bg-[#3D81CC] hover:bg-[#3D81CC]',
     );
 
-  const navItems: Array<{ to: any; label: string; icon: any; isActive: boolean }> = [
+  const navItems: Array<{ to: any; label: string; icon: any; isActive: boolean; isHighlight?: boolean }> = [
     { to: '/conversations/my', label: 'Chats', icon: MessageSquare, isActive: location.pathname.startsWith('/chat') || location.pathname === '/conversations/my' },
     { to: '/agents', label: 'Agents', icon: LayoutGrid, isActive: location.pathname.startsWith('/agents') },
     { to: '/discover', label: 'Discover', icon: Compass, isActive: location.pathname === '/discover' },
     { to: '/tools', label: 'Tools', icon: Wrench, isActive: location.pathname.startsWith('/tools') },
+    { to: '/feedback', label: 'Feedback', icon: Lightbulb, isActive: location.pathname.startsWith('/feedback'), isHighlight: true },
   ];
 
   if (billingData?.role === 'admin') {
@@ -148,7 +150,7 @@ function RootLayout() {
             </div>
 
             <nav className="flex-1 px-2 space-y-0.5 overflow-y-auto mt-4 overflow-x-hidden" aria-label="Dashboard navigation">
-              {navItems.map(({ to, label, icon: Icon, isActive }) => (
+              {navItems.map(({ to, label, icon: Icon, isActive, isHighlight }) => (
                 isSidebarOpen ? (
                   <Link
                     key={to}
@@ -157,11 +159,15 @@ function RootLayout() {
                     aria-current={isActive ? 'page' : undefined}
                     className={cn(
                       navItemClass(isActive),
+                      isHighlight && !isActive && 'text-[#3D81CC]', // Highlight text if not active
                       !isSidebarOpen && 'justify-center px-0',
                     )}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{label}</span>
+                    <Icon className={cn("h-4 w-4 shrink-0", isHighlight && !isActive && "text-[#3D81CC]")} />
+                    <span className="flex-1">{label}</span>
+                    {isHighlight && (
+                      <span className="text-[8px] bg-[#3D81CC]/20 text-[#3D81CC] px-1.5 py-0.5 ml-auto rounded font-bold tracking-widest uppercase">Beta</span>
+                    )}
                   </Link>
                 ) : (
                   <Tooltip key={to}>
@@ -172,10 +178,11 @@ function RootLayout() {
                         aria-current={isActive ? 'page' : undefined}
                         className={cn(
                           navItemClass(isActive),
+                          isHighlight && !isActive && 'text-[#3D81CC]',
                           'justify-center px-0',
                         )}
                       >
-                        <Icon className="h-4 w-4 shrink-0" />
+                        <Icon className={cn("h-4 w-4 shrink-0", isHighlight && !isActive && "text-[#3D81CC]")} />
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent side="right">{label}</TooltipContent>
