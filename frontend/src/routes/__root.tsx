@@ -14,6 +14,7 @@ import {
   Bot,
   ShieldCheck,
   Lightbulb,
+  BookOpen,
 } from 'lucide-react';
 import { useMyConversations, useDeleteConversation } from '../api/conversations';
 import { usePinnedAgents } from '../api/agents';
@@ -82,6 +83,7 @@ function RootLayout() {
     );
 
   const navItems: Array<{ to: any; label: string; icon: any; isActive: boolean; isHighlight?: boolean }> = [
+    { to: '/guide', label: 'How to Use', icon: BookOpen, isActive: location.pathname.startsWith('/guide') },
     { to: '/conversations/my', label: 'Chats', icon: MessageSquare, isActive: location.pathname.startsWith('/chat') || location.pathname === '/conversations/my' },
     { to: '/agents', label: 'Agents', icon: LayoutGrid, isActive: location.pathname.startsWith('/agents') },
     { to: '/discover', label: 'Discover', icon: Compass, isActive: location.pathname === '/discover' },

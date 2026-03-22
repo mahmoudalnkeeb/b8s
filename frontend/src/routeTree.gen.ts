@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as GuideRouteImport } from './routes/guide'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as DiscoverRouteImport } from './routes/discover'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +28,11 @@ import { Route as AdminFeedbackFeedbackIdRouteImport } from './routes/admin/feed
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideRoute = GuideRouteImport.update({
+  id: '/guide',
+  path: '/guide',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackRoute = FeedbackRouteImport.update({
@@ -99,6 +105,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
   '/feedback': typeof FeedbackRoute
+  '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/auth/login': typeof AuthLoginRoute
@@ -115,6 +122,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
   '/feedback': typeof FeedbackRoute
+  '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/auth/login': typeof AuthLoginRoute
@@ -132,6 +140,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/discover': typeof DiscoverRoute
   '/feedback': typeof FeedbackRoute
+  '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
   '/auth/login': typeof AuthLoginRoute
@@ -150,6 +159,7 @@ export interface FileRouteTypes {
     | '/'
     | '/discover'
     | '/feedback'
+    | '/guide'
     | '/settings'
     | '/agents/$agentId'
     | '/auth/login'
@@ -166,6 +176,7 @@ export interface FileRouteTypes {
     | '/'
     | '/discover'
     | '/feedback'
+    | '/guide'
     | '/settings'
     | '/agents/$agentId'
     | '/auth/login'
@@ -182,6 +193,7 @@ export interface FileRouteTypes {
     | '/'
     | '/discover'
     | '/feedback'
+    | '/guide'
     | '/settings'
     | '/agents/$agentId'
     | '/auth/login'
@@ -199,6 +211,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DiscoverRoute: typeof DiscoverRoute
   FeedbackRoute: typeof FeedbackRoute
+  GuideRoute: typeof GuideRoute
   SettingsRoute: typeof SettingsRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRoute
   AuthLoginRoute: typeof AuthLoginRoute
@@ -219,6 +232,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide': {
+      id: '/guide'
+      path: '/guide'
+      fullPath: '/guide'
+      preLoaderRoute: typeof GuideRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback': {
@@ -319,6 +339,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiscoverRoute: DiscoverRoute,
   FeedbackRoute: FeedbackRoute,
+  GuideRoute: GuideRoute,
   SettingsRoute: SettingsRoute,
   AgentsAgentIdRoute: AgentsAgentIdRoute,
   AuthLoginRoute: AuthLoginRoute,
