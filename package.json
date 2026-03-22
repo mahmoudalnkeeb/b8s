@@ -1,0 +1,18 @@
+{
+  "name": "agentmap-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "yarn workspaces run dev",
+    "build": "yarn workspaces run build",
+    "test": "yarn workspaces run test",
+    "lint": "yarn workspaces run lint",
+    "docker:up": "docker compose up -d",
+    "docker:up:build": "docker compose up --build -d",
+    "docker:down": "docker compose down"
+  }
+}

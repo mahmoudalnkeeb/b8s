@@ -1,0 +1,13 @@
+**/node_modules
+**/dist
+node_modules
+dist
+.git
+.env
+*.log
+docker-compose.yml
+compose.yml
+Dockerfile
+.eslintrc.json
+.prettierrc
+README.md
