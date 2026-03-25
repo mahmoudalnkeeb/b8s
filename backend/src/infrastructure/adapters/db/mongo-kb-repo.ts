@@ -122,4 +122,14 @@ export class MongoKnowledgeBaseRepository implements IKnowledgeBaseRepository {
       throw new DatabaseError(message, 'MONGO_FIND_INGESTION_JOB_ERROR');
     }
   }
+
+  async findLatestJobByAgentId(agentId: string): Promise<IIngestionJob | null> {
+    try {
+      const job = await IngestionJobModel.findOne({ agentId }).sort({ createdAt: -1 });
+      return job ? this.mapJobToDomain(job) : null;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new DatabaseError(message, 'MONGO_FIND_LATEST_INGESTION_JOB_ERROR');
+    }
+  }
 }

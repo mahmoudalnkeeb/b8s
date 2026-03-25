@@ -279,18 +279,34 @@ export class AgentController {
         content = file.buffer.toString('utf-8');
       }
 
-      const { IngestionService } =
-        await import('../../infrastructure/external-services/rag/ingestion');
-      const ingestionService = new IngestionService();
+      // Add document ingestion job to BullMQ queue
+      const job = await DIContainer.queueService.addJob(
+        'document-ingestion',
+        'documentIngestion',
+        {
+          agentId,
+          docId,
+          content,
+          fileName: file.originalname,
+          jobId,
+        },
+        {
+          jobId, // Use the same jobId for tracking
+          attempts: 3,
+          backoff: {
+            type: 'exponential',
+            delay: 2000,
+          },
+        },
+      );
 
-      // Perform heavy ingestion asynchronously in background
-      ingestionService
-        .ingestDocument(agentId, docId, content, file.originalname, jobId)
-        .catch((err) => {
-          logger.error('Background ingestion error', { error: err });
-        });
+      logger.info('Document ingestion job queued', {
+        jobId: job.id,
+        agentId,
+        fileName: file.originalname,
+      });
 
-      return res.status(202).json({ success: true, jobId });
+      return res.status(202).json({ success: true, jobId, queueJobId: job.id });
     } catch (error) {
       return next(error);
     }
@@ -355,6 +371,28 @@ export class AgentController {
         jobId as string,
         agentId as string,
       );
+      if (!job) {
+        return res.status(404).json({ error: 'Job not found' });
+      }
+      return res.status(200).json(job);
+    } catch (error) {
+      return next(error);
+    }
+  };
+
+  public getLatestJobStatus = async (
+    req: AuthRequest,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    try {
+      const agentId = req.params['agentId'];
+      if (!agentId || typeof agentId !== 'string') {
+        throw new Error('Agent ID is required');
+      }
+
+      const job = await DIContainer.getAgentLatestJob.execute(agentId as string);
+
       if (!job) {
         return res.status(404).json({ error: 'Job not found' });
       }

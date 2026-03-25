@@ -18,6 +18,9 @@ const envSchema = z.object({
   // Ollama
   OLLAMA_URL: z.string().url().default('http://localhost:11434'),
 
+  // Redis (for BullMQ)
+  REDIS_URL: z.string().url().default('redis://localhost:6379'),
+
   // LLM
   GEMINI_API_KEY: z.string().min(1),
   GENAI_MODEL: z.string().min(1),

@@ -62,6 +62,10 @@ export const agentsApi = {
     const response = await apiClient.get(`/agents/${agentId}/jobs/${jobId}`)
     return response.data
   },
+  getLatestJobStatus: async (agentId: string) => {
+    const response = await apiClient.get(`/agents/${agentId}/jobs/latest`)
+    return response.data
+  },
   getMemories: async (id: string) => {
     const response = await apiClient.get(`/agents/${id}/memories`)
     return response.data
@@ -188,6 +192,25 @@ export const useJobStatus = (agentId: string, jobId: string) => {
     queryKey: ['jobs', agentId, jobId],
     queryFn: () => agentsApi.getJobStatus(agentId, jobId),
     enabled: !!jobId,
+    refetchInterval: (query) => {
+      const data = query.state.data as any
+      if (data?.status === 'completed' || data?.status === 'failed') {
+        if (data?.status === 'completed') {
+          queryClient.invalidateQueries({ queryKey: ['agents', agentId, 'kb'] })
+        }
+        return false
+      }
+      return 2000
+    },
+  })
+}
+
+export const useLatestJobStatus = (agentId: string) => {
+  const queryClient = useQueryClient()
+  return useQuery({
+    queryKey: ['jobs', agentId, 'latest'],
+    queryFn: () => agentsApi.getLatestJobStatus(agentId),
+    enabled: !!agentId,
     refetchInterval: (query) => {
       const data = query.state.data as any
       if (data?.status === 'completed' || data?.status === 'failed') {

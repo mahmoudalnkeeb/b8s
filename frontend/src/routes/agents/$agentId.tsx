@@ -10,6 +10,7 @@ import {
   useKnowledgeBase,
   useDeleteKbDoc,
   usePinnedAgents,
+  useLatestJobStatus,
 } from '../../api/agents';
 import { useMyTools } from '../../api/tools';
 import { useState, useEffect, useMemo } from 'react';
@@ -67,7 +68,7 @@ function AgentDetail() {
   const { confirm } = useConfirm();
 
   const { data: pinnedAgents } = usePinnedAgents({ enabled: true });
-  
+
   const agentWithPin = useMemo(() => {
     if (!agent) return null;
     if (!Array.isArray(pinnedAgents)) return agent;
@@ -76,7 +77,11 @@ function AgentDetail() {
   }, [agent, pinnedAgents]);
 
   const [activeJobId, setActiveJobId] = useState<string | null>(null);
-  const { data: jobStatus } = useJobStatus(agentId, activeJobId || '');
+  const { data: specificJobStatus } = useJobStatus(agentId, activeJobId || '');
+  const { data: latestJobStatus } = useLatestJobStatus(agentId);
+
+  // Use the explicitly active job status if there is one, otherwise fallback to the latest known job
+  const jobStatus = activeJobId ? specificJobStatus : latestJobStatus;
 
   const [name, setName] = useState('');
   const [instructions, setInstructions] = useState('');
@@ -256,7 +261,9 @@ function AgentDetail() {
                   <Brain className="h-6 w-6 text-blue-400" />
                 </div>
                 <div>
-                  <CardTitle className="text-2xl font-headline font-bold text-white">System Instructions</CardTitle>
+                  <CardTitle className="text-2xl font-headline font-bold text-white">
+                    System Instructions
+                  </CardTitle>
                   <CardDescription>Configure how your agent thinks and responds</CardDescription>
                 </div>
               </div>

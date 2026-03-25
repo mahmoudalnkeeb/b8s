@@ -1,3 +1,4 @@
+export * from './get-agent-latest-job';
 export * from './chat-with-agent';
 export * from './ingest-document';
 export * from './create-agent';

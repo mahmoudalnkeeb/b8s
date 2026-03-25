@@ -8,4 +8,5 @@ export interface IKnowledgeBaseRepository {
   createJob(job: IIngestionJob): Promise<void>;
   updateJob(jobId: string, updates: Partial<IIngestionJob>): Promise<void>;
   findJobById(jobId: string, agentId: string): Promise<IIngestionJob | null>;
+  findLatestJobByAgentId(agentId: string): Promise<IIngestionJob | null>;
 }

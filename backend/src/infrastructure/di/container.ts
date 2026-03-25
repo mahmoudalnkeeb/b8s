@@ -13,6 +13,7 @@ import {
 import { ToolExecutionAdapter, MemoryServiceAdapter, RagServiceAdapter } from '../adapters/tools';
 import { BcryptPasswordHasher, JwtTokenService } from '../adapters/auth';
 import { AgentOrchestratorService } from '../../application/services';
+import { getQueueService, ingestionJobProcessorConfig } from '../queue';
 import {
   ChatWithAgentUseCase,
   CreateAgentUseCase,
@@ -35,6 +36,7 @@ import {
   DeleteAgentUseCase,
   ToggleAgentPinUseCase,
   ListPinnedAgentsUseCase,
+  GetAgentLatestJobUseCase,
   CreateConversationUseCase,
   ListUserConversationsUseCase,
   GetConversationByIdUseCase,
@@ -130,6 +132,7 @@ export class DIContainer {
     this.ragService,
   );
   static readonly getIngestionJobStatus = new GetIngestionJobStatusUseCase(this.kbRepo);
+  static readonly getAgentLatestJob = new GetAgentLatestJobUseCase(this.kbRepo);
   static readonly listAgentMemories = new ListAgentMemoriesUseCase(this.memoryService);
   static readonly listUserAgents = new ListUserAgentsUseCase(this.agentRepo);
   static readonly getDiscoverAgents = new GetDiscoverAgentsUseCase(this.agentRepo);
@@ -167,4 +170,21 @@ export class DIContainer {
   static readonly adminListFeedback = new AdminListFeedbackUseCase(this.feedbackRepo);
   static readonly adminGetFeedbackById = new AdminGetFeedbackByIdUseCase(this.feedbackRepo);
   static readonly adminUpdateFeedback = new AdminUpdateFeedbackUseCase(this.feedbackRepo);
+
+  // Queue Service
+  static readonly queueService = getQueueService(env.REDIS_URL);
+
+  // Initialize queues and processors
+  static initializeQueues() {
+    // Register document ingestion queue
+    this.queueService.registerQueue({ name: 'document-ingestion' });
+
+    // Register job processor
+    this.queueService.registerProcessor('document-ingestion', ingestionJobProcessorConfig);
+
+    console.log('Queues initialized successfully');
+  }
 }
+
+// Initialize queues on module load
+DIContainer.initializeQueues();

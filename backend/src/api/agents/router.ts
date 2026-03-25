@@ -1,22 +1,26 @@
 import { Router } from 'express';
-import multer from 'multer';
 import { AgentController } from './controller';
 import { authMiddleware } from '../middlewares/auth';
+import multer from 'multer';
+
+// Use memory storage for fast small file uploads instead of disk storage
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+});
 
 const router = Router();
 const controller = new AgentController();
-const upload = multer({ storage: multer.memoryStorage() });
 
-// Discover is public (no auth required)
-router.get('/discover', controller.listDiscover);
-
-// All other routes require authentication
 router.use(authMiddleware.authenticate);
 
 router.post('/', controller.create);
 router.get('/my', controller.listMyAgents);
+router.get('/discover', controller.listDiscover);
 router.get('/pinned', controller.listPinned);
-router.get('/:agentId', controller.getById);
+router.get('/:agentId', authMiddleware.authorizeAgent, controller.getById);
 router.patch('/:agentId', authMiddleware.authorizeAgent, controller.update);
 router.delete('/:agentId', authMiddleware.authorizeAgent, controller.delete);
 router.post('/:agentId/deploy', authMiddleware.authorizeAgent, controller.deploy);
@@ -33,6 +37,7 @@ router.delete(
   authMiddleware.authorizeAgent,
   controller.deleteKnowledgeBaseDoc,
 );
+router.get('/:agentId/jobs/latest', authMiddleware.authorizeAgent, controller.getLatestJobStatus);
 router.get('/:agentId/jobs/:jobId', authMiddleware.authorizeAgent, controller.getJobStatus);
 router.get('/:agentId/memories', authMiddleware.authorizeAgent, controller.listMemories);
 
