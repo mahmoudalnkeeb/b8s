@@ -1,4 +1,4 @@
-import { app } from '@api/index';
+import { app } from '@/presentation/index';
 
 import { CoreLoader } from './infrastructure';
 import { serverConfig } from './infrastructure/configs';

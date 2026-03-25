@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import 'dotenv/config';
-import routes from '@/api/router';
+import routes from '@/presentation/router';
 import { logger } from '../infrastructure/utils/logger';
 import { ErrorMiddleware } from './middlewares/error';
 import { rateLimiterMiddleware } from './middlewares/rate-limiter';
