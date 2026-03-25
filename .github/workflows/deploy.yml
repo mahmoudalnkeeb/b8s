@@ -91,7 +91,23 @@ jobs:
           username: ${{ secrets.EC2_USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           source: 'compose.yml,ec2-nginx.conf'
-          target: '/home/${{ secrets.EC2_USERNAME }}/b8s-deployment'
+          target: '/home/${{ secrets.EC2_USERNAME }}/b8s-deployment/'
+          strip_components: 0
+          debug: true
+          overwrite: true
+          rm: true
+
+      - name: Remove old Docker images
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Remove dangling images and old versions
+            docker image prune -f
+            docker images -f "dangling=true" -q | xargs -r docker rmi || true
+            docker system prune -af --filter "until=24h" || true
 
       - name: Execute Swarm Deploy
         uses: appleboy/ssh-action@v1.0.3
