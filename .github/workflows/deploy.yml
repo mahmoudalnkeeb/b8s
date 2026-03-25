@@ -109,6 +109,29 @@ jobs:
             docker images -f "dangling=true" -q | xargs -r docker rmi || true
             docker system prune -af --filter "until=24h" || true
 
+      - name: Create .env file on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cat > /home/${{ secrets.EC2_USERNAME }}/b8s-deployment/.env << 'EOF'
+            NODE_ENV=production
+            PORT=3000
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            VECTOR_DB_URL=${{ secrets.VECTOR_DB_URL }}
+            VECTOR_DB_TYPE=qdrant
+            OLLAMA_URL=http://ollama:11434
+            REDIS_URL=redis://redis:6379
+            GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+            GENAI_MODEL=${{ secrets.GENAI_MODEL }}
+            DEEPSEEK_API_KEY=${{ secrets.DEEPSEEK_API_KEY }}
+            DEEPSEEK_MODEL=${{ secrets.DEEPSEEK_MODEL }}
+            EMBEDDING_MODEL=nomic-embed-text-v2-moe
+            EOF
+
       - name: Execute Swarm Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -117,9 +140,5 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/${{ secrets.EC2_USERNAME }}/b8s-deployment
-            # Ensure .env exists so compose doesn't throw an error missing the file
-            touch .env
-            # Export the registry to match whatever was built
             export DOCKER_REGISTRY=${{ secrets.DOCKER_USERNAME }}
-            # Deploy across the swarm
             docker stack deploy --with-registry-auth -c compose.yml b8s
