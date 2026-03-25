@@ -76,6 +76,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Create deployment directory on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: mkdir -p /home/${{ secrets.EC2_USERNAME }}/b8s-deployment
+
       - name: Copy compose.yml to Manager Node
         uses: appleboy/scp-action@v0.1.7
         with:
