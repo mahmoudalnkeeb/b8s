@@ -6,6 +6,7 @@ import { JobStatus } from '@/domain/models';
 import { aiConfig } from '@/infrastructure/configs';
 import { logger } from '@/infrastructure/utils/logger';
 import { JobProcessor, JobData } from '../queue-service';
+import { extractMetadata } from '@/infrastructure/utils/metadata-extractor';
 
 export interface DocumentIngestionJobData extends JobData {
   agentId: string;
@@ -49,6 +50,15 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
     const chunks = chunkText(content);
     logger.info(`Document ${fileName} chunked into ${chunks.length} chunks`);
 
+    // Extract metadata from full document
+    const documentMetadata = extractMetadata(content);
+    logger.info(`Extracted metadata from ${fileName}:`, {
+      urls: documentMetadata.urls.length,
+      emails: documentMetadata.emails.length,
+      phones: documentMetadata.phones.length,
+      socialLinks: Object.keys(documentMetadata.socialLinks).length,
+    });
+
     // Update total chunks in job
     await IngestionJobModel.findOneAndUpdate({ jobId }, { totalChunks: chunks.length });
 
@@ -73,19 +83,32 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
       const embeddingProvider = new OllamaEmbeddingProvider();
       const embeddings = await embeddingProvider.embedBatch(batch, 'document');
 
-      // Create points for Qdrant
-      const points = batch.map((chunk, index) => ({
-        id: randomUUID(),
-        vector: embeddings[index] || [],
-        payload: {
-          docId,
-          agentId,
-          text: chunk,
-          fileName,
-          chunkIndex: i + index,
-          createdAt: new Date().toISOString(),
-        },
-      }));
+      // Create points for Qdrant with metadata
+      const points = batch.map((chunk, index) => {
+        const chunkMetadata = extractMetadata(chunk);
+        return {
+          id: randomUUID(),
+          vector: embeddings[index] || [],
+          payload: {
+            docId,
+            agentId,
+            text: chunk,
+            fileName,
+            chunkIndex: i + index,
+            createdAt: new Date().toISOString(),
+            // Store extracted metadata for hybrid search
+            urls: chunkMetadata.urls.length > 0 ? chunkMetadata.urls : documentMetadata.urls,
+            emails:
+              chunkMetadata.emails.length > 0 ? chunkMetadata.emails : documentMetadata.emails,
+            phones:
+              chunkMetadata.phones.length > 0 ? chunkMetadata.phones : documentMetadata.phones,
+            socialLinks:
+              Object.keys(chunkMetadata.socialLinks).length > 0
+                ? chunkMetadata.socialLinks
+                : documentMetadata.socialLinks,
+          },
+        };
+      });
 
       allPoints.push(...points);
 

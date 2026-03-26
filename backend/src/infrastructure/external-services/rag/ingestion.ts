@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto';
 import { IngestionJobModel, JobStatus } from '../../db/models';
 import { logger } from '../../utils/logger';
 import { aiConfig } from '../../configs';
+import { extractMetadata } from '../../utils/metadata-extractor';
 
 export class IngestionService {
   private _vectorClient?: QdrantClient;
@@ -127,24 +128,46 @@ export class IngestionService {
       const BATCH_SIZE = aiConfig.rag.batchSize;
       const allPoints: { id: string; vector: number[]; payload: Record<string, unknown> }[] = [];
 
+      // Extract metadata from full document
+      const documentMetadata = extractMetadata(content);
+      logger.info(`Extracted metadata from ${fileName}:`, {
+        urls: documentMetadata.urls.length,
+        emails: documentMetadata.emails.length,
+        phones: documentMetadata.phones.length,
+        socialLinks: Object.keys(documentMetadata.socialLinks).length,
+      });
+
       for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
         const batch = chunks.slice(i, i + BATCH_SIZE);
 
         logger.debug(`Processing chunk ${i + 1}/${chunks.length} for ${fileName}`);
         const embeddings = await this.embeddingProvider.embedBatch(batch, 'document');
 
-        const points = batch.map((chunk, index) => ({
-          id: randomUUID(),
-          vector: embeddings[index] || [],
-          payload: {
-            docId,
-            agentId,
-            text: chunk,
-            fileName,
-            chunkIndex: i + index,
-            createdAt: new Date().toISOString(),
-          },
-        }));
+        const points = batch.map((chunk, index) => {
+          const chunkMetadata = extractMetadata(chunk);
+          return {
+            id: randomUUID(),
+            vector: embeddings[index] || [],
+            payload: {
+              docId,
+              agentId,
+              text: chunk,
+              fileName,
+              chunkIndex: i + index,
+              createdAt: new Date().toISOString(),
+              // Store extracted metadata for hybrid search
+              urls: chunkMetadata.urls.length > 0 ? chunkMetadata.urls : documentMetadata.urls,
+              emails:
+                chunkMetadata.emails.length > 0 ? chunkMetadata.emails : documentMetadata.emails,
+              phones:
+                chunkMetadata.phones.length > 0 ? chunkMetadata.phones : documentMetadata.phones,
+              socialLinks:
+                Object.keys(chunkMetadata.socialLinks).length > 0
+                  ? chunkMetadata.socialLinks
+                  : documentMetadata.socialLinks,
+            },
+          };
+        });
 
         allPoints.push(...points);
 

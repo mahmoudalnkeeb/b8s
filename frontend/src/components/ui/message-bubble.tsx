@@ -5,12 +5,15 @@ import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import remarkBreaks from 'remark-breaks';
 import { cn } from '@/lib/utils';
+import { CitationsList } from './citation';
+import type { CitationProps } from './citation';
 
 export interface MessageProps {
   role: 'user' | 'assistant' | string;
   content: string;
   timestamp?: string | Date;
   isLoading?: boolean;
+  citations?: CitationProps[];
 }
 
 // --- Copy button for code blocks ---
@@ -199,12 +202,17 @@ export const MessageBubble = React.memo(({ message }: { message: MessageProps })
           ) : isUser ? (
             <p className="whitespace-pre-wrap">{message.content}</p>
           ) : (
-            <ReactMarkdown
-              remarkPlugins={[remarkGfm, remarkBreaks]}
-              components={markdownComponents}
-            >
-              {message.content}
-            </ReactMarkdown>
+            <>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                components={markdownComponents}
+              >
+                {message.content}
+              </ReactMarkdown>
+              {message.citations && message.citations.length > 0 && (
+                <CitationsList citations={message.citations} />
+              )}
+            </>
           )}
         </div>
 
