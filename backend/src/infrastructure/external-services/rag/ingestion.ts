@@ -123,8 +123,17 @@ export class IngestionService {
         const batch = chunkTexts.slice(i, i + BATCH_SIZE);
         const batchChunks = semanticChunks.slice(i, i + BATCH_SIZE);
 
-        logger.debug(`Processing chunk ${i + 1}/${chunkTexts.length} for ${fileName}`);
+        logger.info(`[INGEST] Processing chunk ${i + 1}/${chunkTexts.length} for ${fileName}`, {
+          chunkLength: batch[0]?.length,
+          textPreview: batch[0]?.substring(0, 100),
+        });
+
         const embeddings = await this.embeddingProvider.embedBatch(batch, 'document');
+
+        logger.info(`[INGEST] Embeddings generated`, {
+          embeddingsCount: embeddings.length,
+          embeddingLength: embeddings[0]?.length,
+        });
 
         const points = batch.map((chunk, index) => {
           const semanticChunk = batchChunks[index];
@@ -136,6 +145,23 @@ export class IngestionService {
             socialLinks: {},
           };
 
+          const finalMeta = {
+            urls: chunkMeta.urls.length > 0 ? chunkMeta.urls : documentMetadata.urls,
+            emails: chunkMeta.emails.length > 0 ? chunkMeta.emails : documentMetadata.emails,
+            phones: chunkMeta.phones.length > 0 ? chunkMeta.phones : documentMetadata.phones,
+            socialLinks:
+              Object.keys(chunkMeta.socialLinks).length > 0
+                ? chunkMeta.socialLinks
+                : documentMetadata.socialLinks,
+          };
+
+          logger.info(`[INGEST] Chunk ${i + index} metadata`, {
+            chunkIndex: i + index,
+            hasOwnMeta: chunkMeta.urls.length > 0 || chunkMeta.emails.length > 0,
+            finalEmails: finalMeta.emails,
+            finalSocialLinks: finalMeta.socialLinks,
+          });
+
           return {
             id: randomUUID(),
             vector: embeddings[index] || [],
@@ -146,14 +172,7 @@ export class IngestionService {
               fileName,
               chunkIndex: i + index,
               createdAt: new Date().toISOString(),
-              // Store extracted metadata for hybrid search
-              urls: chunkMeta.urls.length > 0 ? chunkMeta.urls : documentMetadata.urls,
-              emails: chunkMeta.emails.length > 0 ? chunkMeta.emails : documentMetadata.emails,
-              phones: chunkMeta.phones.length > 0 ? chunkMeta.phones : documentMetadata.phones,
-              socialLinks:
-                Object.keys(chunkMeta.socialLinks).length > 0
-                  ? chunkMeta.socialLinks
-                  : documentMetadata.socialLinks,
+              ...finalMeta,
             },
           };
         });
