@@ -81,13 +81,19 @@ export class RagService {
   ): Promise<{ ok: boolean; context: RagResult[]; validationSummary?: string }> {
     const collectionName = this.getCollectionName(input.agentId);
 
+    // Guard against undefined or empty query
+    const query = input.query || '';
+    if (!query.trim()) {
+      return { ok: true, context: [], validationSummary: 'No query provided.' };
+    }
+
     try {
       const collections = await this.vectorClient.getCollections();
       const exists = collections.collections.some((c) => c.name === collectionName);
       if (!exists) return { ok: true, context: [] };
 
-      const embedding = await this.embeddingProvider.embed(input.query, 'query');
-      const queryType = this.detectQueryType(input.query);
+      const embedding = await this.embeddingProvider.embed(query, 'query');
+      const queryType = this.detectQueryType(query);
 
       // Build filter based on query type
       let filter: Record<string, unknown> | undefined;
@@ -134,7 +140,7 @@ export class RagService {
       }));
 
       // Validate results with secondary model
-      const validation = await this.validationService.validateResults(input.query, context);
+      const validation = await this.validationService.validateResults(query, context);
 
       // Return only relevant results
       const relevantContext = validation.hasRelevantResults
