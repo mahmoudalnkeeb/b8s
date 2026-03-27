@@ -8,6 +8,7 @@ import {
 } from '../../../domain/ports';
 import { IToolCall, MemoryReadAccess, MemoryWriteAccess } from '../../../domain/models';
 import { ToolExecutionError } from '../../../domain/errors';
+import { logger } from '../../utils/logger';
 
 export class ToolExecutionAdapter implements IToolExecutor {
   constructor(
@@ -20,6 +21,12 @@ export class ToolExecutionAdapter implements IToolExecutor {
   async execute(toolCall: IToolCall, context: ToolExecutionContext): Promise<unknown> {
     try {
       const { name, arguments: args } = toolCall;
+
+      logger.info('[TOOL] Executing tool', {
+        toolName: name,
+        args: JSON.stringify(args),
+        agentId: context.agentId,
+      });
 
       if (name === 'memory_get') {
         const agent = await this.agentRepo.findById(context.agentId);
@@ -46,9 +53,12 @@ export class ToolExecutionAdapter implements IToolExecutor {
       }
 
       if (name === 'rag_query') {
+        const query = args?.['query'];
+        logger.info('[TOOL] RAG query args', { query, rawArgs: JSON.stringify(args) });
+
         return await this.ragService.query({
           agentId: context.agentId,
-          query: args['query'] as string,
+          query: (query as string) || '',
         });
       }
 
