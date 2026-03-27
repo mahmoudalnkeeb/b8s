@@ -53,12 +53,19 @@ export class ToolExecutionAdapter implements IToolExecutor {
       }
 
       if (name === 'rag_query') {
-        const query = args?.['query'];
-        logger.info('[TOOL] RAG query args', { query, rawArgs: JSON.stringify(args) });
+        const rawQuery = args?.['query'];
+        // Fallback: if LLM didn't provide query, use last user message
+        const query = (rawQuery as string) || context.lastUserMessage || '';
+
+        logger.info('[TOOL] RAG query args', {
+          rawQuery,
+          fallbackUsed: !rawQuery && !!context.lastUserMessage,
+          finalQuery: query.substring(0, 100),
+        });
 
         return await this.ragService.query({
           agentId: context.agentId,
-          query: (query as string) || '',
+          query,
         });
       }
 

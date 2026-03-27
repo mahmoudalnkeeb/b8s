@@ -79,6 +79,7 @@ export class ChatWithAgentUseCase {
       agentId: agent.agentId,
       userId: request.userId,
       conversationId: conversation.conversationId,
+      lastUserMessage: request.userMessage,
     };
 
     const systemInstruction = BASE_SYSTEM_PROMPT + '\n' + (agent.config.instructions || '');
@@ -169,6 +170,7 @@ export class ChatWithAgentUseCase {
       agentId: agent.agentId,
       userId: request.userId,
       conversationId: conversation.conversationId,
+      lastUserMessage: request.userMessage,
     };
 
     const systemInstruction = BASE_SYSTEM_PROMPT + '\n' + (agent.config.instructions || '');

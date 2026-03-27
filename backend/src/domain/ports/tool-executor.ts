@@ -4,6 +4,7 @@ export interface ToolExecutionContext {
   agentId: string;
   userId: string;
   conversationId: string;
+  lastUserMessage?: string;
 }
 
 export interface IToolExecutor {

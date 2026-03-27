@@ -35,13 +35,14 @@ export const MEMORY_SET_TOOL: IToolDefinition = {
 export const RAG_QUERY_TOOL: IToolDefinition = {
   name: 'rag_query',
   description:
-    'Search the agents internal knowledge base/uploaded documents for specific technical details or information.',
+    'Search the agent\'s internal knowledge base/uploaded documents for specific technical details or information. REQUIRED: You MUST pass a "query" string argument with the search terms. Example: {"query": "contact information"}',
   apiSchema: {
     type: 'object',
     properties: {
       query: {
         type: 'string',
-        description: 'The search query to find information in the knowledge base.',
+        description:
+          'The search query to find information in the knowledge base. This parameter is REQUIRED.',
       },
     },
     required: ['query'],
