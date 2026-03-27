@@ -2,7 +2,6 @@ import { QdrantClient } from '@qdrant/js-client-rest';
 import { CoreLoader } from '../../index';
 import { OllamaEmbeddingProvider, IEmbeddingProvider } from '../memory/embedding';
 import { aiConfig } from '../../configs';
-import { RagValidationService } from './validation';
 
 export interface RagInput {
   agentId: string;
@@ -28,11 +27,9 @@ export interface RagResult {
 export class RagService {
   private _vectorClient?: QdrantClient;
   private embeddingProvider: IEmbeddingProvider;
-  private validationService: RagValidationService;
 
   constructor() {
     this.embeddingProvider = new OllamaEmbeddingProvider();
-    this.validationService = new RagValidationService();
   }
 
   private get vectorClient(): QdrantClient {
@@ -46,15 +43,32 @@ export class RagService {
     return `kb_${agentId.replace(/-/g, '_')}`;
   }
 
-  public async query(
-    input: RagInput,
-  ): Promise<{ ok: boolean; context: RagResult[]; validationSummary?: string }> {
+  private mapResult(r: any): RagResult {
+    return {
+      docId: (r.payload?.['docId'] as string) || (r.id as string),
+      text: (r.payload?.['text'] as string) || '',
+      score: r.score ?? 0,
+      metadata: {
+        urls: r.payload?.['urls'] || [],
+        emails: r.payload?.['emails'] || [],
+        phones: r.payload?.['phones'] || [],
+        socialLinks: r.payload?.['socialLinks'] || {},
+      },
+      citation: {
+        fileName: (r.payload?.['fileName'] as string) || 'Unknown',
+        chunkIndex: (r.payload?.['chunkIndex'] as number) || 0,
+        docId: (r.payload?.['docId'] as string) || (r.id as string),
+      },
+    };
+  }
+
+  public async query(input: RagInput): Promise<{ ok: boolean; context: RagResult[] }> {
     const collectionName = this.getCollectionName(input.agentId);
 
     // Guard against undefined or empty query
     const query = input.query || '';
     if (!query.trim()) {
-      return { ok: true, context: [], validationSummary: 'No query provided.' };
+      return { ok: true, context: [] };
     }
 
     try {
@@ -64,42 +78,16 @@ export class RagService {
 
       const embedding = await this.embeddingProvider.embed(query, 'query');
 
+      // Vector search
       const results = await this.vectorClient.search(collectionName, {
         vector: embedding,
         limit: input.topK || aiConfig.rag.defaultTopK,
         with_payload: true,
       });
 
-      const context: RagResult[] = results.map((r) => ({
-        docId: (r.payload?.['docId'] as string) || (r.id as string),
-        text: (r.payload?.['text'] as string) || '',
-        score: r.score,
-        metadata: {
-          urls: r.payload?.['urls'] || [],
-          emails: r.payload?.['emails'] || [],
-          phones: r.payload?.['phones'] || [],
-          socialLinks: r.payload?.['socialLinks'] || {},
-        },
-        citation: {
-          fileName: (r.payload?.['fileName'] as string) || 'Unknown',
-          chunkIndex: (r.payload?.['chunkIndex'] as number) || 0,
-          docId: (r.payload?.['docId'] as string) || (r.id as string),
-        },
-      }));
+      const context: RagResult[] = results.map((r) => this.mapResult(r));
 
-      // Validate results with secondary model
-      const validation = await this.validationService.validateResults(query, context);
-
-      // Return only relevant results
-      const relevantContext = validation.hasRelevantResults
-        ? validation.validatedResults.filter((r) => r.isRelevant)
-        : validation.validatedResults;
-
-      return {
-        ok: true,
-        context: relevantContext,
-        validationSummary: validation.validationSummary,
-      };
+      return { ok: true, context };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       console.error('RAG Error:', message);

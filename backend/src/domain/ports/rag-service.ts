@@ -19,8 +19,6 @@ export interface RagQueryResult {
 }
 
 export interface IRagService {
-  query(
-    request: RagQueryRequest,
-  ): Promise<{ ok: boolean; context: RagQueryResult[]; validationSummary?: string }>;
+  query(request: RagQueryRequest): Promise<{ ok: boolean; context: RagQueryResult[] }>;
   deleteDocument(agentId: string, docId: string): Promise<void>;
 }
