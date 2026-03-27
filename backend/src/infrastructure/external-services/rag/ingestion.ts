@@ -6,6 +6,7 @@ import { IngestionJobModel, JobStatus } from '../../db/models';
 import { logger } from '../../utils/logger';
 import { aiConfig } from '../../configs';
 import { extractMetadata } from '../../utils/metadata-extractor';
+import { semanticChunk, mergeSmallChunks } from '../../utils/semantic-chunker';
 
 export class IngestionService {
   private _vectorClient?: QdrantClient;
@@ -76,37 +77,6 @@ export class IngestionService {
     logger.info(`Created collection: ${name} with dimension ${this.VECTOR_SIZE}`);
   }
 
-  /**
-   * Word-aware recursive character splitter
-   */
-  private chunkText(
-    text: string,
-    chunkSize = aiConfig.rag.chunkSize,
-    overlap = aiConfig.rag.chunkOverlap,
-  ): string[] {
-    const chunks: string[] = [];
-    let start = 0;
-
-    while (start < text.length) {
-      let end = start + chunkSize;
-
-      if (end < text.length) {
-        const lastSpace = text.lastIndexOf(' ', end);
-        if (lastSpace > start + chunkSize * 0.5) {
-          end = lastSpace;
-        }
-      }
-
-      chunks.push(text.substring(start, end).trim());
-      start = end - overlap;
-
-      if (start < 0) start = 0;
-      if (start >= end) start = end;
-    }
-
-    return chunks.filter((c) => c.length > 0);
-  }
-
   public async ingestDocument(
     agentId: string,
     docId: string,
@@ -116,19 +86,28 @@ export class IngestionService {
   ) {
     try {
       const collectionName = await this.ensureCollection(agentId);
-      const chunks = this.chunkText(content);
+
+      // Use semantic chunking instead of character-based
+      const rawChunks = semanticChunk(content, {
+        maxChunkSize: aiConfig.rag.chunkSize * 3, // Allow larger chunks for semantic grouping
+        minChunkSize: 50,
+        overlap: aiConfig.rag.chunkOverlap,
+      });
+
+      // Merge small chunks that share metadata
+      const semanticChunks = mergeSmallChunks(rawChunks, 200);
+      const chunkTexts = semanticChunks.map((c) => c.text);
 
       await IngestionJobModel.findOneAndUpdate(
         { jobId },
-        { status: JobStatus.PROCESSING, totalChunks: chunks.length },
+        { status: JobStatus.PROCESSING, totalChunks: chunkTexts.length },
       );
 
-      logger.info(`Ingesting ${fileName} for agent ${agentId}: ${chunks.length} chunks`);
+      logger.info(
+        `Ingesting ${fileName} for agent ${agentId}: ${chunkTexts.length} semantic chunks`,
+      );
 
-      const BATCH_SIZE = aiConfig.rag.batchSize;
-      const allPoints: { id: string; vector: number[]; payload: Record<string, unknown> }[] = [];
-
-      // Extract metadata from full document
+      // Extract metadata from full document for fallback
       const documentMetadata = extractMetadata(content);
       logger.info(`Extracted metadata from ${fileName}:`, {
         urls: documentMetadata.urls.length,
@@ -137,14 +116,26 @@ export class IngestionService {
         socialLinks: Object.keys(documentMetadata.socialLinks).length,
       });
 
-      for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
-        const batch = chunks.slice(i, i + BATCH_SIZE);
+      const BATCH_SIZE = aiConfig.rag.batchSize;
+      const allPoints: { id: string; vector: number[]; payload: Record<string, unknown> }[] = [];
 
-        logger.debug(`Processing chunk ${i + 1}/${chunks.length} for ${fileName}`);
+      for (let i = 0; i < chunkTexts.length; i += BATCH_SIZE) {
+        const batch = chunkTexts.slice(i, i + BATCH_SIZE);
+        const batchChunks = semanticChunks.slice(i, i + BATCH_SIZE);
+
+        logger.debug(`Processing chunk ${i + 1}/${chunkTexts.length} for ${fileName}`);
         const embeddings = await this.embeddingProvider.embedBatch(batch, 'document');
 
         const points = batch.map((chunk, index) => {
-          const chunkMetadata = extractMetadata(chunk);
+          const semanticChunk = batchChunks[index];
+          // Use chunk's own metadata, fall back to document metadata
+          const chunkMeta = semanticChunk?.metadata || {
+            urls: [],
+            emails: [],
+            phones: [],
+            socialLinks: {},
+          };
+
           return {
             id: randomUUID(),
             vector: embeddings[index] || [],
@@ -156,14 +147,12 @@ export class IngestionService {
               chunkIndex: i + index,
               createdAt: new Date().toISOString(),
               // Store extracted metadata for hybrid search
-              urls: chunkMetadata.urls.length > 0 ? chunkMetadata.urls : documentMetadata.urls,
-              emails:
-                chunkMetadata.emails.length > 0 ? chunkMetadata.emails : documentMetadata.emails,
-              phones:
-                chunkMetadata.phones.length > 0 ? chunkMetadata.phones : documentMetadata.phones,
+              urls: chunkMeta.urls.length > 0 ? chunkMeta.urls : documentMetadata.urls,
+              emails: chunkMeta.emails.length > 0 ? chunkMeta.emails : documentMetadata.emails,
+              phones: chunkMeta.phones.length > 0 ? chunkMeta.phones : documentMetadata.phones,
               socialLinks:
-                Object.keys(chunkMetadata.socialLinks).length > 0
-                  ? chunkMetadata.socialLinks
+                Object.keys(chunkMeta.socialLinks).length > 0
+                  ? chunkMeta.socialLinks
                   : documentMetadata.socialLinks,
             },
           };
@@ -173,7 +162,7 @@ export class IngestionService {
 
         await IngestionJobModel.findOneAndUpdate(
           { jobId },
-          { processedChunks: Math.min(i + BATCH_SIZE, chunks.length) },
+          { processedChunks: Math.min(i + BATCH_SIZE, chunkTexts.length) },
         );
       }
 
@@ -187,11 +176,11 @@ export class IngestionService {
 
       await IngestionJobModel.findOneAndUpdate(
         { jobId },
-        { status: JobStatus.COMPLETED, processedChunks: chunks.length },
+        { status: JobStatus.COMPLETED, processedChunks: chunkTexts.length },
       );
 
-      logger.info(`Ingestion completed for ${fileName}`);
-      return { ok: true, chunksCount: chunks.length };
+      logger.info(`Ingestion completed for ${fileName}: ${chunkTexts.length} chunks`);
+      return { ok: true, chunksCount: chunkTexts.length };
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       logger.error(`Ingestion failed for job ${jobId}:`, message);

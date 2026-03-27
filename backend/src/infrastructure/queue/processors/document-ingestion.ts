@@ -7,6 +7,7 @@ import { aiConfig } from '@/infrastructure/configs';
 import { logger } from '@/infrastructure/utils/logger';
 import { JobProcessor, JobData } from '../queue-service';
 import { extractMetadata } from '@/infrastructure/utils/metadata-extractor';
+import { semanticChunk, mergeSmallChunks } from '@/infrastructure/utils/semantic-chunker';
 
 export interface DocumentIngestionJobData extends JobData {
   agentId: string;
@@ -46,11 +47,20 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
     // Get collection name
     const collectionName = await ingestionService['ensureCollection'](agentId);
 
-    // Chunk the text
-    const chunks = chunkText(content);
-    logger.info(`Document ${fileName} chunked into ${chunks.length} chunks`);
+    // Use semantic chunking instead of character-based
+    const rawChunks = semanticChunk(content, {
+      maxChunkSize: aiConfig.rag.chunkSize * 3, // Allow larger chunks for semantic grouping
+      minChunkSize: 50,
+      overlap: aiConfig.rag.chunkOverlap,
+    });
 
-    // Extract metadata from full document
+    // Merge small chunks that share metadata
+    const semanticChunks = mergeSmallChunks(rawChunks, 200);
+    const chunks = semanticChunks.map((c) => c.text);
+
+    logger.info(`Document ${fileName} chunked into ${chunks.length} semantic chunks`);
+
+    // Extract metadata from full document for fallback
     const documentMetadata = extractMetadata(content);
     logger.info(`Extracted metadata from ${fileName}:`, {
       urls: documentMetadata.urls.length,
@@ -68,6 +78,7 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
     // Process chunks in batches
     for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
       const batch = chunks.slice(i, i + BATCH_SIZE);
+      const batchChunks = semanticChunks.slice(i, i + BATCH_SIZE);
       const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
       const totalBatches = Math.ceil(chunks.length / BATCH_SIZE);
 
@@ -85,7 +96,14 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
 
       // Create points for Qdrant with metadata
       const points = batch.map((chunk, index) => {
-        const chunkMetadata = extractMetadata(chunk);
+        const semanticChunk = batchChunks[index];
+        const chunkMeta = semanticChunk?.metadata || {
+          urls: [],
+          emails: [],
+          phones: [],
+          socialLinks: {},
+        };
+
         return {
           id: randomUUID(),
           vector: embeddings[index] || [],
@@ -97,14 +115,12 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
             chunkIndex: i + index,
             createdAt: new Date().toISOString(),
             // Store extracted metadata for hybrid search
-            urls: chunkMetadata.urls.length > 0 ? chunkMetadata.urls : documentMetadata.urls,
-            emails:
-              chunkMetadata.emails.length > 0 ? chunkMetadata.emails : documentMetadata.emails,
-            phones:
-              chunkMetadata.phones.length > 0 ? chunkMetadata.phones : documentMetadata.phones,
+            urls: chunkMeta.urls.length > 0 ? chunkMeta.urls : documentMetadata.urls,
+            emails: chunkMeta.emails.length > 0 ? chunkMeta.emails : documentMetadata.emails,
+            phones: chunkMeta.phones.length > 0 ? chunkMeta.phones : documentMetadata.phones,
             socialLinks:
-              Object.keys(chunkMetadata.socialLinks).length > 0
-                ? chunkMetadata.socialLinks
+              Object.keys(chunkMeta.socialLinks).length > 0
+                ? chunkMeta.socialLinks
                 : documentMetadata.socialLinks,
           },
         };
@@ -176,37 +192,6 @@ export async function documentIngestionProcessor(job: Job<DocumentIngestionJobDa
     // Throw to trigger BullMQ retry logic
     throw error;
   }
-}
-
-/**
- * Word-aware recursive character splitter
- */
-function chunkText(
-  text: string,
-  chunkSize = aiConfig.rag.chunkSize,
-  overlap = aiConfig.rag.chunkOverlap,
-): string[] {
-  const chunks: string[] = [];
-  let start = 0;
-
-  while (start < text.length) {
-    let end = start + chunkSize;
-
-    if (end < text.length) {
-      const lastSpace = text.lastIndexOf(' ', end);
-      if (lastSpace > start + chunkSize * 0.5) {
-        end = lastSpace;
-      }
-    }
-
-    chunks.push(text.substring(start, end).trim());
-    start = end - overlap;
-
-    if (start < 0) start = 0;
-    if (start >= end) start = end;
-  }
-
-  return chunks.filter((c) => c.length > 0);
 }
 
 /**

@@ -46,36 +46,6 @@ export class RagService {
     return `kb_${agentId.replace(/-/g, '_')}`;
   }
 
-  private detectQueryType(query: string): 'email' | 'url' | 'social' | 'general' {
-    const lowerQuery = query.toLowerCase();
-
-    // Check for email-related queries
-    if (lowerQuery.includes('email') || lowerQuery.includes('mail') || lowerQuery.includes('@')) {
-      return 'email';
-    }
-
-    // Check for social media queries
-    if (
-      lowerQuery.includes('github') ||
-      lowerQuery.includes('linkedin') ||
-      lowerQuery.includes('twitter')
-    ) {
-      return 'social';
-    }
-
-    // Check for URL/website queries
-    if (
-      lowerQuery.includes('url') ||
-      lowerQuery.includes('website') ||
-      lowerQuery.includes('link') ||
-      lowerQuery.includes('domain')
-    ) {
-      return 'url';
-    }
-
-    return 'general';
-  }
-
   public async query(
     input: RagInput,
   ): Promise<{ ok: boolean; context: RagResult[]; validationSummary?: string }> {
@@ -93,33 +63,11 @@ export class RagService {
       if (!exists) return { ok: true, context: [] };
 
       const embedding = await this.embeddingProvider.embed(query, 'query');
-      const queryType = this.detectQueryType(query);
-
-      // Build filter based on query type
-      let filter: Record<string, unknown> | undefined;
-      if (queryType === 'social') {
-        filter = {
-          should: [
-            { key: 'socialLinks.github', match: { except: [''] } },
-            { key: 'socialLinks.linkedin', match: { except: [''] } },
-            { key: 'socialLinks.twitter', match: { except: [''] } },
-          ],
-        };
-      } else if (queryType === 'email') {
-        filter = {
-          must: [{ key: 'emails', match: { except: [''] } }],
-        };
-      } else if (queryType === 'url') {
-        filter = {
-          must: [{ key: 'urls', match: { except: [''] } }],
-        };
-      }
 
       const results = await this.vectorClient.search(collectionName, {
         vector: embedding,
         limit: input.topK || aiConfig.rag.defaultTopK,
         with_payload: true,
-        filter: filter as any,
       });
 
       const context: RagResult[] = results.map((r) => ({
