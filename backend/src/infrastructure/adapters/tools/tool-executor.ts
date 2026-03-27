@@ -28,6 +28,10 @@ export class ToolExecutionAdapter implements IToolExecutor {
         agentId: context.agentId,
       });
 
+      logger.debug('complete tool call object', {
+        toolCall: JSON.stringify(toolCall),
+      });
+
       if (name === 'memory_get') {
         const agent = await this.agentRepo.findById(context.agentId);
         return await this.memoryService.get({
