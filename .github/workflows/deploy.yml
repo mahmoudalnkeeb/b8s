@@ -4,9 +4,25 @@ on:
   push:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'compose.yml'
+      - 'ec2-nginx.conf'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/deploy.yml'
   pull_request:
     branches:
       - main
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+      - 'compose.yml'
+      - 'ec2-nginx.conf'
+      - 'package.json'
+      - 'yarn.lock'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   test-and-build-code:
