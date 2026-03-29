@@ -11,6 +11,15 @@ process.env.GENAI_MODEL = 'gemini-2.5-flash';
 process.env.DEEPSEEK_API_KEY = 'test-deepseek-key';
 process.env.DEEPSEEK_MODEL = 'deepseek-chat';
 process.env.EMBEDDING_MODEL = 'nomic-embed-text-v2-moe';
+process.env.SENTRY_DSN = '';
+
+// Mock Sentry
+jest.mock('@sentry/node', () => ({
+  init: jest.fn(),
+  captureException: jest.fn(),
+  captureMessage: jest.fn(),
+  setupExpressErrorHandler: jest.fn(),
+}));
 
 // Mock ioredis
 jest.mock('ioredis', () => {

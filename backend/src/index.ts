@@ -1,3 +1,6 @@
+// IMPORTANT: Import instrument.ts first to initialize Sentry before anything else
+import './instrument';
+
 import { app } from '@/presentation/index';
 
 import { CoreLoader } from './infrastructure';

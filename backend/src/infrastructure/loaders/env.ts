@@ -27,6 +27,9 @@ const envSchema = z.object({
   DEEPSEEK_API_KEY: z.string().min(1),
   DEEPSEEK_MODEL: z.string().min(1),
   EMBEDDING_MODEL: z.string().default('nomic-embed-text-v2-moe'),
+
+  // Sentry
+  SENTRY_DSN: z.string().optional(),
 });
 
 export const validateEnv = () => {

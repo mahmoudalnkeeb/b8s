@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import * as Sentry from '@sentry/node';
 import 'dotenv/config';
 import routes from '@/presentation/router';
 import { logger } from '../infrastructure/utils/logger';
@@ -23,5 +24,8 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api', routes);
+
+// Sentry error handler must be registered before any other error middleware and after all controllers
+Sentry.setupExpressErrorHandler(app);
 
 app.use(ErrorMiddleware.handleError);
