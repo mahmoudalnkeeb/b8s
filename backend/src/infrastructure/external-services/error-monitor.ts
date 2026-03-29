@@ -5,7 +5,7 @@ import { logger } from '../utils/logger';
  */
 export class ErrorMonitor {
   private static instance: ErrorMonitor;
-  
+
   private constructor() {
     // Future initialization (e.g., Sentry.init)
   }
@@ -24,10 +24,10 @@ export class ErrorMonitor {
    */
   public captureException(error: any, context: Record<string, any> = {}): void {
     // Internal logging
-    logger.error('Error monitored:', { 
+    logger.error('Error monitored:', {
       message: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-      ...context 
+      ...context,
     });
 
     // FUTURE: Integrate with Sentry or other platforms here
@@ -37,9 +37,13 @@ export class ErrorMonitor {
   /**
    * Logs a message with a specific severity.
    */
-  public captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info', context: Record<string, any> = {}): void {
+  public captureMessage(
+    message: string,
+    level: 'info' | 'warning' | 'error' = 'info',
+    context: Record<string, any> = {},
+  ): void {
     logger.log(level, `Monitor message: ${message}`, context);
-    
+
     // FUTURE: Sentry.captureMessage(message, level);
   }
 }
