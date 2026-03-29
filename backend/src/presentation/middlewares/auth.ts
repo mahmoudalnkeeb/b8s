@@ -75,6 +75,31 @@ export const authMiddleware = {
     }
   },
 
+  authorizeAgentOrPublic: async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const userId = req.user?.userId;
+      const agentId = req.params['agentId'];
+
+      if (!agentId) {
+        return res.status(400).json({ error: 'Agent ID is required' });
+      }
+
+      const agent = await DIContainer.agentRepo.findById(agentId as string);
+      if (!agent) {
+        return res.status(404).json({ error: 'Agent not found' });
+      }
+
+      // Allow access if user owns the agent OR agent is public
+      if (agent.ownerId !== userId && agent.accessRules.type !== 'public') {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      return next();
+    } catch (error) {
+      return next(error);
+    }
+  },
+
   authorizeConversation: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const userId = req.user?.userId;

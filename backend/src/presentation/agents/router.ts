@@ -20,7 +20,7 @@ router.post('/', controller.create);
 router.get('/my', controller.listMyAgents);
 router.get('/discover', controller.listDiscover);
 router.get('/pinned', controller.listPinned);
-router.get('/:agentId', authMiddleware.authorizeAgent, controller.getById);
+router.get('/:agentId', authMiddleware.authorizeAgentOrPublic, controller.getById);
 router.patch('/:agentId', authMiddleware.authorizeAgent, controller.update);
 router.delete('/:agentId', authMiddleware.authorizeAgent, controller.delete);
 router.post('/:agentId/deploy', authMiddleware.authorizeAgent, controller.deploy);
