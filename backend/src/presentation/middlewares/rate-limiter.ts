@@ -14,7 +14,10 @@ export const rateLimiterMiddleware = (req: Request, res: Response, next: NextFun
       res.setHeader('Retry-After', rateLimiterRes.msBeforeNext / 1000);
       res.setHeader('X-RateLimit-Limit', 100);
       res.setHeader('X-RateLimit-Remaining', rateLimiterRes.remainingPoints);
-      res.setHeader('X-RateLimit-Reset', new Date(Date.now() + rateLimiterRes.msBeforeNext).toISOString());
+      res.setHeader(
+        'X-RateLimit-Reset',
+        new Date(Date.now() + rateLimiterRes.msBeforeNext).toISOString(),
+      );
       next();
     })
     .catch((rateLimiterRes) => {
@@ -22,7 +25,10 @@ export const rateLimiterMiddleware = (req: Request, res: Response, next: NextFun
         res.setHeader('Retry-After', rateLimiterRes.msBeforeNext / 1000);
         res.setHeader('X-RateLimit-Limit', 100);
         res.setHeader('X-RateLimit-Remaining', rateLimiterRes.remainingPoints);
-        res.setHeader('X-RateLimit-Reset', new Date(Date.now() + rateLimiterRes.msBeforeNext).toISOString());
+        res.setHeader(
+          'X-RateLimit-Reset',
+          new Date(Date.now() + rateLimiterRes.msBeforeNext).toISOString(),
+        );
       }
       res.status(429).json({
         error: 'Too Many Requests',

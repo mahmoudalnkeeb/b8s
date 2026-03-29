@@ -5,14 +5,28 @@ export enum AccessType {
   PRIVATE = 'private',
   ALLOW_LIST = 'allow_list',
 }
+
 export enum MemoryReadAccess {
   PUBLIC = 'public',
   PRIVATE = 'private',
   CREATED_ONLY = 'created_only',
 }
+
 export enum MemoryWriteAccess {
   PUBLIC = 'public',
   PRIVATE = 'private',
+}
+
+export enum UserRole {
+  USER = 'user',
+  ADMIN = 'admin',
+}
+
+export enum BillingTier {
+  NONE = 'none',
+  FREE = 'free',
+  BASIC = 'basic',
+  PRO = 'pro',
 }
 
 export interface IAgentConfig {
@@ -86,4 +100,55 @@ export interface IIngestionJob {
   error?: string | undefined;
   createdAt?: Date | undefined;
   updatedAt?: Date | undefined;
+}
+
+export interface IBillingAccount {
+  userId: string;
+  tier: BillingTier;
+  cuBalance: number;
+  grantedCuBalance: number;
+  totalCuUsed: number;
+  billingCycleStart: Date;
+  createdAt?: Date | undefined;
+  updatedAt?: Date | undefined;
+}
+
+export interface ICoupon {
+  code: string;
+  tier: BillingTier;
+  cuGrant: number;
+  maxUses: number;
+  usedCount: number;
+  usedBy: string[];
+  expiresAt?: Date | undefined;
+  active: boolean;
+  createdAt?: Date | undefined;
+  updatedAt?: Date | undefined;
+}
+
+export interface IUsageLog {
+  userId: string;
+  agentId: string;
+  conversationId: string;
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+  cuDeducted: number;
+  timestamp: Date;
+}
+
+export interface IFeedback {
+  feedbackId: string;
+  userId: string;
+  type: 'bug' | 'suggestion';
+  content: string;
+  status: 'new' | 'reviewed' | 'resolved';
+  createdAt?: Date | undefined;
+  updatedAt?: Date | undefined;
+}
+
+export interface IUserPin {
+  userId: string;
+  agentId: string;
+  createdAt?: Date | undefined;
 }

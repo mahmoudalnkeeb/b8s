@@ -12,3 +12,4 @@ export * from './token-service';
 export * from './memory-service';
 export * from './rag-service';
 export * from './billing-repository';
+export * from './feedback-repository';

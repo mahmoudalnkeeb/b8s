@@ -1,7 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../../infrastructure/utils/logger';
 import { ZodError } from 'zod';
-import { DomainError } from '../../domain/errors';
+import {
+  DomainError,
+  NotFoundError,
+  UnauthorizedError,
+  InsufficientBalanceError,
+  ConflictError,
+  ValidationError,
+  QuotaExceededError,
+} from '../../domain/errors';
 import { errorMonitor } from '../../infrastructure/external-services/error-monitor';
 
 export class AppError extends Error {
@@ -15,13 +23,18 @@ export class AppError extends Error {
   }
 }
 
+function getStatusCodeForError(err: DomainError): number {
+  if (err instanceof NotFoundError) return 404;
+  if (err instanceof UnauthorizedError) return 401;
+  if (err instanceof InsufficientBalanceError) return 402;
+  if (err instanceof ConflictError) return 409;
+  if (err instanceof ValidationError) return 400;
+  if (err instanceof QuotaExceededError) return 429;
+  return 400;
+}
+
 export class ErrorMiddleware {
-  public static handleError(
-    err: any,
-    req: Request,
-    res: Response,
-    _next: NextFunction,
-  ) {
+  public static handleError(err: unknown, req: Request, res: Response, _next: NextFunction) {
     const context = {
       path: req.path,
       method: req.method,
@@ -40,14 +53,7 @@ export class ErrorMiddleware {
     }
 
     if (err instanceof DomainError) {
-      const statusCode =
-        err.name === 'NotFoundError'
-          ? 404
-          : err.name === 'UnauthorizedError'
-            ? 401
-            : err.name === 'InsufficientBalanceError'
-              ? 402
-              : 400;
+      const statusCode = getStatusCodeForError(err);
 
       logger.warn(`Domain Error: ${err.message}`, { name: err.name, code: err.code, ...context });
       return res.status(statusCode).json({
@@ -66,10 +72,11 @@ export class ErrorMiddleware {
     }
 
     // Unexpected errors
-    errorMonitor.captureException(err, context);
+    const errorMessage = err instanceof Error ? err.message : 'Internal server error';
+    errorMonitor.captureException(err instanceof Error ? err : new Error(String(err)), context);
     return res.status(500).json({
       status: 'error',
-      message: err.message || 'Internal server error',
+      message: errorMessage,
     });
   }
 }

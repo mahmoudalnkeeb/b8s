@@ -34,7 +34,11 @@ export class MongoBillingRepository implements IBillingRepository {
     updates: Partial<IBillingAccount>,
   ): Promise<IBillingAccount | null> {
     try {
-      return await BillingAccountModel.findOneAndUpdate({ userId }, { $set: updates }, { new: true });
+      return await BillingAccountModel.findOneAndUpdate(
+        { userId },
+        { $set: updates },
+        { new: true },
+      );
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(message, 'MONGO_UPDATE_BILLING_ERROR');
@@ -131,10 +135,7 @@ export class MongoCouponRepository implements ICouponRepository {
 
   async deactivate(code: string): Promise<void> {
     try {
-      await CouponModel.findOneAndUpdate(
-        { code: code.toUpperCase() },
-        { $set: { active: false } },
-      );
+      await CouponModel.findOneAndUpdate({ code: code.toUpperCase() }, { $set: { active: false } });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(message, 'MONGO_DEACTIVATE_COUPON_ERROR');

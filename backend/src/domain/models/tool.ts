@@ -1,7 +1,7 @@
 export interface IToolDefinition {
   name: string;
   description: string;
-  apiSchema?: Record<string, unknown>;
+  apiSchema?: Record<string, unknown> | undefined;
 }
 
 export interface IToolCall {

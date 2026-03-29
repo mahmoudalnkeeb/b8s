@@ -22,11 +22,11 @@ export class ErrorMonitor {
    * @param error The error object to capture
    * @param context Additional metadata context
    */
-  public captureException(error: any, context: Record<string, any> = {}): void {
+  public captureException(error: Error, context: Record<string, unknown> = {}): void {
     // Internal logging
     logger.error('Error monitored:', {
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
+      message: error.message,
+      stack: error.stack,
       ...context,
     });
 
@@ -40,7 +40,7 @@ export class ErrorMonitor {
   public captureMessage(
     message: string,
     level: 'info' | 'warning' | 'error' = 'info',
-    context: Record<string, any> = {},
+    context: Record<string, unknown> = {},
   ): void {
     logger.log(level, `Monitor message: ${message}`, context);
 

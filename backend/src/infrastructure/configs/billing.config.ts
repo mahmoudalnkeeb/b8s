@@ -1,9 +1,8 @@
+import { billingRates } from '../../domain/configs/billing-rates';
+import { BillingTier } from '../../domain/models';
+
 export const billingConfig = {
-  rates: {
-    inputCacheMiss: 0.336, // per 1M tokens (raw $0.28 + 20%)
-    inputCacheHit: 0.0336, // per 1M tokens (raw $0.028 + 20%)
-    output: 0.504, // per 1M tokens (raw $0.42 + 20%)
-  },
+  rates: billingRates,
   tiers: {
     none: { monthly: 0, cuAllocation: 0 },
     free: { monthly: 0, cuAllocation: 2 },
@@ -12,4 +11,4 @@ export const billingConfig = {
   },
 } as const;
 
-export type BillingTier = keyof typeof billingConfig.tiers;
+export type { BillingTier };

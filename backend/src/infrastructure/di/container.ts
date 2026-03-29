@@ -14,6 +14,7 @@ import { ToolExecutionAdapter, MemoryServiceAdapter, RagServiceAdapter } from '.
 import { BcryptPasswordHasher, JwtTokenService } from '../adapters/auth';
 import { AgentOrchestratorService } from '../../application/services';
 import { getQueueService, ingestionJobProcessorConfig } from '../queue';
+import { LoggerAdapter } from '../adapters/logger-adapter';
 import {
   ChatWithAgentUseCase,
   CreateAgentUseCase,
@@ -53,6 +54,7 @@ import {
   AdminListFeedbackUseCase,
   AdminUpdateFeedbackUseCase,
   AdminGetFeedbackByIdUseCase,
+  UploadKnowledgeBaseUseCase,
 } from '../../application/use-cases';
 import { env } from '../loaders/env';
 
@@ -92,7 +94,15 @@ export class DIContainer {
   );
 
   // Services
-  static readonly orchestrator = new AgentOrchestratorService(this.llmProvider, this.toolExecutor);
+  static readonly logger = new LoggerAdapter();
+  static readonly orchestrator = new AgentOrchestratorService(
+    this.llmProvider,
+    this.toolExecutor,
+    this.logger,
+  );
+
+  // Queue Service
+  static readonly queueService = getQueueService(env.REDIS_URL);
 
   // Use Cases - Auth
   static readonly registerUser = new RegisterUserUseCase(
@@ -119,6 +129,7 @@ export class DIContainer {
     this.orchestrator,
     this.billingRepo,
     this.deductCUs,
+    this.logger,
   );
   static readonly createAgent = new CreateAgentUseCase(this.agentRepo, this.billingRepo);
   static readonly ingestDocument = new IngestDocumentUseCase(
@@ -133,6 +144,11 @@ export class DIContainer {
   );
   static readonly getIngestionJobStatus = new GetIngestionJobStatusUseCase(this.kbRepo);
   static readonly getAgentLatestJob = new GetAgentLatestJobUseCase(this.kbRepo);
+  static readonly uploadKnowledgeBase = new UploadKnowledgeBaseUseCase(
+    this.kbRepo,
+    this.agentRepo,
+    this.queueService,
+  );
   static readonly listAgentMemories = new ListAgentMemoriesUseCase(this.memoryService);
   static readonly listUserAgents = new ListUserAgentsUseCase(this.agentRepo);
   static readonly getDiscoverAgents = new GetDiscoverAgentsUseCase(this.agentRepo);
@@ -171,9 +187,6 @@ export class DIContainer {
   static readonly adminGetFeedbackById = new AdminGetFeedbackByIdUseCase(this.feedbackRepo);
   static readonly adminUpdateFeedback = new AdminUpdateFeedbackUseCase(this.feedbackRepo);
 
-  // Queue Service
-  static readonly queueService = getQueueService(env.REDIS_URL);
-
   // Initialize queues and processors
   static initializeQueues() {
     // Register document ingestion queue
@@ -185,6 +198,3 @@ export class DIContainer {
     console.log('Queues initialized successfully');
   }
 }
-
-// Initialize queues on module load
-DIContainer.initializeQueues();

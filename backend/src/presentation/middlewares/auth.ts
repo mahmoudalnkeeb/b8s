@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { authConfig } from '../../infrastructure/configs';
-import { AgentModel, ConversationModel, UserModel } from '../../infrastructure/db/models';
+import { DIContainer } from '../../infrastructure/di/container';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -40,7 +40,7 @@ export const authMiddleware = {
         return res.status(401).json({ error: 'Unauthorized' });
       }
 
-      const user = await UserModel.findOne({ userId });
+      const user = await DIContainer.userRepo.findById(userId);
       if (!user || user.role !== 'admin') {
         return res.status(403).json({ error: 'Forbidden: Admin access required' });
       }
@@ -60,7 +60,7 @@ export const authMiddleware = {
         return res.status(400).json({ error: 'Agent ID is required' });
       }
 
-      const agent = await AgentModel.findOne({ agentId: agentId as string });
+      const agent = await DIContainer.agentRepo.findById(agentId as string);
       if (!agent) {
         return res.status(404).json({ error: 'Agent not found' });
       }
@@ -84,9 +84,7 @@ export const authMiddleware = {
         return res.status(400).json({ error: 'Conversation ID is required' });
       }
 
-      const conversation = await ConversationModel.findOne({
-        conversationId: conversationId as string,
-      });
+      const conversation = await DIContainer.convoRepo.findById(conversationId as string);
       if (!conversation) {
         return res.status(404).json({ error: 'Conversation not found' });
       }

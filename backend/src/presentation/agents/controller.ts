@@ -1,7 +1,6 @@
 import { NextFunction, Response, Request } from 'express';
 import { createAgentDto, updateAgentDto } from './dto';
 import { AuthRequest } from '../middlewares/auth';
-import { logger } from '../../infrastructure/utils/logger';
 import { DIContainer } from '../../infrastructure/di/container';
 import { randomUUID } from 'crypto';
 import {
@@ -9,10 +8,29 @@ import {
   MemoryReadAccess,
   MemoryWriteAccess,
   IAgent,
-} from '../../infrastructure/db/models';
+  IToolDefinition,
+} from '../../domain/models';
+import { UnauthorizedError } from '../../domain/errors';
 
 export class AgentController {
   constructor() {}
+
+  private async resolveToolDefinitions(toolIds: string[]): Promise<IToolDefinition[]> {
+    const toolDefinitions: IToolDefinition[] = [];
+    if (toolIds.length > 0) {
+      for (const toolId of toolIds) {
+        const tool = await DIContainer.toolRepo.findById(toolId);
+        if (tool) {
+          toolDefinitions.push({
+            name: tool.name,
+            description: tool.description,
+            apiSchema: tool.apiSchema,
+          });
+        }
+      }
+    }
+    return toolDefinitions;
+  }
 
   public create = async (
     req: AuthRequest,
@@ -21,26 +39,12 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const dto = createAgentDto.parse(req.body);
 
-      // Resolve tools from toolIds
-      const toolRepo = DIContainer.toolRepo;
-      const toolDefinitions: any[] = [];
-      if (dto.config.tools && dto.config.tools.length > 0) {
-        for (const toolId of dto.config.tools) {
-          const tool = await toolRepo.findById(toolId);
-          if (tool) {
-            toolDefinitions.push({
-              name: tool.name,
-              description: tool.description,
-              apiSchema: tool.apiSchema,
-            });
-          }
-        }
-      }
+      const toolDefinitions = await this.resolveToolDefinitions(dto.config.tools || []);
 
       const accessRules: { type: AccessType; allowList?: string[] } = {
         type: (dto.accessRules?.type as AccessType) || AccessType.PRIVATE,
@@ -72,7 +76,7 @@ export class AgentController {
       await DIContainer.createAgent.execute(
         agentData as unknown as import('../../domain/models').IAgent,
       );
-      logger.info('Agent created via port', { userId });
+      DIContainer.logger.info('Agent created via port', { userId });
       return res.status(201).json(agentData);
     } catch (error) {
       return next(error);
@@ -86,7 +90,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agents = await DIContainer.listUserAgents.execute(userId);
@@ -117,7 +121,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -137,7 +141,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -147,19 +151,8 @@ export class AgentController {
 
       // Resolve tools if provided in config
       if (dto.config?.tools && Array.isArray(dto.config.tools)) {
-        const toolRepo = DIContainer.toolRepo;
-        const toolDefinitions: any[] = [];
-        for (const toolId of dto.config.tools) {
-          const tool = await toolRepo.findById(toolId);
-          if (tool) {
-            toolDefinitions.push({
-              name: tool.name,
-              description: tool.description,
-              apiSchema: tool.apiSchema,
-            });
-          }
-        }
-        (dto.config as any).tools = toolDefinitions;
+        const toolDefinitions = await this.resolveToolDefinitions(dto.config.tools);
+        (dto.config as unknown as { tools: IToolDefinition[] }).tools = toolDefinitions;
       }
 
       const agent = await DIContainer.updateAgent.execute(
@@ -167,7 +160,7 @@ export class AgentController {
         dto as unknown as import('../../domain/models').IAgent,
         userId as string,
       );
-      logger.info('Agent updated via port', { agentId, userId });
+      DIContainer.logger.info('Agent updated via port', { agentId, userId });
       return res.status(200).json(agent);
     } catch (error) {
       return next(error);
@@ -181,7 +174,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -192,7 +185,7 @@ export class AgentController {
         { deployed: true } as unknown as import('../../domain/models').IAgent,
         userId as string,
       );
-      logger.info('Agent deployed via port', { agentId, userId });
+      DIContainer.logger.info('Agent deployed via port', { agentId, userId });
       return res.status(200).json(agent);
     } catch (error) {
       return next(error);
@@ -206,7 +199,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -216,7 +209,7 @@ export class AgentController {
       if (!success) {
         return res.status(404).json({ error: 'Agent not found or unauthorized' });
       }
-      logger.info('Agent deleted via port', { agentId, userId });
+      DIContainer.logger.info('Agent deleted via port', { agentId, userId });
       return res.status(200).json({ ok: true });
     } catch (error) {
       return next(error);
@@ -230,7 +223,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -242,71 +235,27 @@ export class AgentController {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
-      logger.info('Knowledge base upload started', {
+      DIContainer.logger.info('Knowledge base upload started', {
         agentId,
         ownerId: userId,
         fileName: file.originalname,
       });
 
-      const jobId = randomUUID();
-      const docId = randomUUID();
-
-      // Ensure JobStatus is used correctly via DIContainer's domain model
-      await DIContainer.kbRepo.createDoc({
-        docId,
+      const result = await DIContainer.uploadKnowledgeBase.execute({
         agentId,
+        userId,
         fileName: file.originalname,
-        content: '',
-        metadata: { userId },
+        fileBuffer: file.buffer,
+        mimeType: file.mimetype,
       });
 
-      await DIContainer.kbRepo.createJob({
-        jobId,
-        agentId,
-        fileName: file.originalname,
-        status: 'pending' as import('../../domain/models').JobStatus,
-        totalChunks: 0,
-        processedChunks: 0,
-      });
-
-      let content = '';
-      if (file.originalname.toLowerCase().endsWith('.pdf') || file.mimetype === 'application/pdf') {
-        const pdfParse = await import('pdf-parse');
-        const parser = new pdfParse.PDFParse({ data: file.buffer });
-        const parsed = await parser.getText();
-        content = parsed.text;
-      } else {
-        content = file.buffer.toString('utf-8');
-      }
-
-      // Add document ingestion job to BullMQ queue
-      const job = await DIContainer.queueService.addJob(
-        'document-ingestion',
-        'documentIngestion',
-        {
-          agentId,
-          docId,
-          content,
-          fileName: file.originalname,
-          jobId,
-        },
-        {
-          jobId, // Use the same jobId for tracking
-          attempts: 3,
-          backoff: {
-            type: 'exponential',
-            delay: 2000,
-          },
-        },
-      );
-
-      logger.info('Document ingestion job queued', {
-        jobId: job.id,
+      DIContainer.logger.info('Document ingestion job queued', {
+        jobId: result.queueJobId,
         agentId,
         fileName: file.originalname,
       });
 
-      return res.status(202).json({ success: true, jobId, queueJobId: job.id });
+      return res.status(202).json(result);
     } catch (error) {
       return next(error);
     }
@@ -335,7 +284,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -425,7 +374,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
@@ -445,7 +394,7 @@ export class AgentController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const agents = await DIContainer.listPinnedAgents.execute(userId);

@@ -6,10 +6,10 @@ import { AgentModel, IAgent as IAgentDoc } from '../../db/models';
 export class MongoAgentRepository implements IAgentRepository {
   private mapToDomain(doc: IAgentDoc): IAgent {
     const obj = doc.toObject() as any;
-    
+
     // Support both old 'id' and new 'agentId' fields for backward compatibility
     const agentId = obj.agentId || obj.id;
-    
+
     const agent: IAgent = {
       agentId: agentId,
       ownerId: obj.ownerId,
@@ -20,8 +20,7 @@ export class MongoAgentRepository implements IAgentRepository {
         tools: obj.config?.tools || [],
         memoryEnabled: obj.config?.memoryEnabled ?? true,
         memoryReadAccess:
-          (obj.config?.memoryReadAccess as unknown as MemoryReadAccess) ||
-          MemoryReadAccess.PRIVATE,
+          (obj.config?.memoryReadAccess as unknown as MemoryReadAccess) || MemoryReadAccess.PRIVATE,
         memoryWriteAccess:
           (obj.config?.memoryWriteAccess as unknown as MemoryWriteAccess) ||
           MemoryWriteAccess.PRIVATE,
@@ -53,9 +52,9 @@ export class MongoAgentRepository implements IAgentRepository {
       // Search by agentId first, then by _id if needed (for very old data)
       let doc = await AgentModel.findOne({ agentId });
       if (!doc && agentId.match(/^[0-9a-fA-F]{24}$/)) {
-          doc = await AgentModel.findById(agentId);
+        doc = await AgentModel.findById(agentId);
       }
-      
+
       if (!doc) return null;
       return this.mapToDomain(doc);
     } catch (error: unknown) {
@@ -109,9 +108,13 @@ export class MongoAgentRepository implements IAgentRepository {
   async update(agentId: string, updates: Partial<IAgent>): Promise<IAgent | null> {
     try {
       const mongoUpdates: Record<string, unknown> = { ...updates };
-      const doc = await AgentModel.findOneAndUpdate({ agentId }, { $set: mongoUpdates }, {
-        returnDocument: 'after',
-      });
+      const doc = await AgentModel.findOneAndUpdate(
+        { agentId },
+        { $set: mongoUpdates },
+        {
+          returnDocument: 'after',
+        },
+      );
       if (!doc) return null;
       return this.mapToDomain(doc);
     } catch (error: unknown) {

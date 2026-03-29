@@ -1,60 +1,32 @@
 import { Schema, model, Document } from 'mongoose';
+import {
+  AccessType,
+  MemoryReadAccess,
+  MemoryWriteAccess,
+  MessageRole,
+  JobStatus,
+  UserRole,
+  BillingTier,
+} from '../../domain/models';
 
-// --- Enums ---
-export enum AccessType {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  ALLOW_LIST = 'allow_list',
-}
+// Re-export enums for backward compatibility
+export {
+  AccessType,
+  MemoryReadAccess,
+  MemoryWriteAccess,
+  MessageRole,
+  JobStatus,
+  UserRole,
+  BillingTier,
+};
 
-export enum MemoryReadAccess {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-  CREATED_ONLY = 'created_only',
-}
-
-export enum MemoryWriteAccess {
-  PUBLIC = 'public',
-  PRIVATE = 'private',
-}
-
-export enum MessageRole {
-  USER = 'user',
-  ASSISTANT = 'assistant',
-  SYSTEM = 'system',
-  TOOL = 'tool',
-}
-
-export enum JobStatus {
-  PENDING = 'pending',
-  PROCESSING = 'processing',
-  COMPLETED = 'completed',
-  FAILED = 'failed',
-}
-
-export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
-}
-
-export enum BillingTier {
-  NONE = 'none',
-  FREE = 'free',
-  BASIC = 'basic',
-  PRO = 'pro',
-}
-
-// --- Interfaces ---
+// --- Interfaces (Mongoose Document types extending domain interfaces) ---
 export interface IAccessRules {
   type: AccessType;
   allowList?: string[];
 }
 
-export interface IToolDefinition {
-  name: string;
-  description: string;
-  apiSchema?: Record<string, unknown>;
-}
+export type { IToolDefinition } from '../../domain/models/tool';
 
 export interface ITool extends Document {
   toolId: string;
@@ -71,7 +43,7 @@ export interface ITool extends Document {
 
 export interface IAgentConfig {
   instructions: string;
-  tools: IToolDefinition[];
+  tools: import('../../domain/models').IToolDefinition[];
   memoryEnabled: boolean;
   memoryReadAccess: MemoryReadAccess;
   memoryWriteAccess: MemoryWriteAccess;
@@ -309,7 +281,7 @@ const FeedbackSchema = new Schema<IFeedback>(
     content: { type: String, required: true },
     status: { type: String, enum: ['new', 'reviewed', 'resolved'], default: 'new' },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const UserPinSchema = new Schema<IUserPin>(

@@ -25,8 +25,12 @@ export class QdrantAdapter implements IVectorStore {
       });
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      
-      if (message === 'Not Found' || message.includes('Not Found') || message.includes('Not found')) {
+
+      if (
+        message === 'Not Found' ||
+        message.includes('Not Found') ||
+        message.includes('Not found')
+      ) {
         try {
           if (!memory.vector) throw new Error('Vector is required for collection creation');
           await this.client.createCollection(collection, {
@@ -35,7 +39,7 @@ export class QdrantAdapter implements IVectorStore {
               distance: 'Cosine',
             },
           });
-          
+
           // Retry upsert after creating collection
           await this.client.upsert(collection, {
             wait: true,
@@ -49,8 +53,12 @@ export class QdrantAdapter implements IVectorStore {
           });
           return;
         } catch (retryError: unknown) {
-          const retryMessage = retryError instanceof Error ? retryError.message : String(retryError);
-          throw new DatabaseError(`Failed to create collection and retry: ${retryMessage}`, 'QDRANT_UPSERT_ERROR');
+          const retryMessage =
+            retryError instanceof Error ? retryError.message : String(retryError);
+          throw new DatabaseError(
+            `Failed to create collection and retry: ${retryMessage}`,
+            'QDRANT_UPSERT_ERROR',
+          );
         }
       }
 
@@ -76,8 +84,12 @@ export class QdrantAdapter implements IVectorStore {
       }));
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
-      
-      if (message === 'Not Found' || message.includes('Not Found') || message.includes('Not found')) {
+
+      if (
+        message === 'Not Found' ||
+        message.includes('Not Found') ||
+        message.includes('Not found')
+      ) {
         return [];
       }
 

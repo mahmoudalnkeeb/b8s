@@ -1,5 +1,3 @@
-
-
 export interface FeedbackData {
   feedbackId: string;
   userId: string;

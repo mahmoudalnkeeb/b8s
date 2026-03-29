@@ -1,6 +1,6 @@
 import { IBillingRepository } from '../../domain/ports/billing-repository';
 import { InsufficientBalanceError } from '../../domain/errors';
-import { billingConfig } from '../../infrastructure/configs/billing.config';
+import { billingRates } from '../../domain/configs/billing-rates';
 
 export interface DeductCUsRequest {
   userId: string;
@@ -16,16 +16,16 @@ export class DeductCUsUseCase {
 
   /**
    * Calculate CU cost from token usage using the formula:
-   * CU = ((inputMiss × 0.336) + (inputHit × 0.0336) + (output × 0.504)) / 1,000,000
+   * CU = ((inputMiss x 0.336) + (inputHit x 0.0336) + (output x 0.504)) / 1,000,000
    */
   calculateCost(inputTokens: number, outputTokens: number, cachedTokens: number): number {
     const inputMiss = Math.max(0, inputTokens - cachedTokens);
     const inputHit = cachedTokens;
 
     const cost =
-      (inputMiss * billingConfig.rates.inputCacheMiss +
-        inputHit * billingConfig.rates.inputCacheHit +
-        outputTokens * billingConfig.rates.output) /
+      (inputMiss * billingRates.inputCacheMiss +
+        inputHit * billingRates.inputCacheHit +
+        outputTokens * billingRates.output) /
       1_000_000;
 
     return Math.max(0, cost);
@@ -37,7 +37,11 @@ export class DeductCUsUseCase {
       throw new InsufficientBalanceError();
     }
 
-    const cuCost = this.calculateCost(request.inputTokens, request.outputTokens, request.cachedTokens);
+    const cuCost = this.calculateCost(
+      request.inputTokens,
+      request.outputTokens,
+      request.cachedTokens,
+    );
 
     const totalAvailable = account.grantedCuBalance + account.cuBalance;
     if (totalAvailable < cuCost) {
@@ -45,14 +49,14 @@ export class DeductCUsUseCase {
     }
 
     // Deduct from granted balance first, then paid balance
-    let grantedDeduction = Math.min(account.grantedCuBalance, cuCost);
-    let paidDeduction = cuCost - grantedDeduction;
+    const grantedDeduction = Math.min(account.grantedCuBalance, cuCost);
+    const paidDeduction = cuCost - grantedDeduction;
 
     await this.billingRepo.updateBalance(request.userId, {
       grantedCuBalance: account.grantedCuBalance - grantedDeduction,
       cuBalance: account.cuBalance - paidDeduction,
       totalCuUsed: account.totalCuUsed + cuCost,
-    } as any);
+    });
 
     // Log the usage
     await this.billingRepo.logUsage({
@@ -64,7 +68,7 @@ export class DeductCUsUseCase {
       cachedTokens: request.cachedTokens,
       cuDeducted: cuCost,
       timestamp: new Date(),
-    } as any);
+    });
 
     return cuCost;
   }

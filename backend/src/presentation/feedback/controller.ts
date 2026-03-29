@@ -2,7 +2,7 @@ import { NextFunction, Response } from 'express';
 import { AuthRequest } from '../middlewares/auth';
 import { submitFeedbackDto } from './dto';
 import { DIContainer } from '../../infrastructure/di/container';
-import { logger } from '../../infrastructure/utils/logger';
+import { UnauthorizedError } from '../../domain/errors';
 
 export class FeedbackController {
   constructor() {}
@@ -14,7 +14,7 @@ export class FeedbackController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
 
       const dto = submitFeedbackDto.parse(req.body);
 
@@ -25,7 +25,10 @@ export class FeedbackController {
         content: dto.content,
       });
 
-      logger.info('Feedback submitted', { feedbackId: feedback.feedbackId, userId: user.userId });
+      DIContainer.logger.info('Feedback submitted', {
+        feedbackId: feedback.feedbackId,
+        userId: user.userId,
+      });
 
       return res.status(201).json(feedback);
     } catch (error) {

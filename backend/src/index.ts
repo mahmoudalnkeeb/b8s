@@ -2,16 +2,17 @@ import { app } from '@/presentation/index';
 
 import { CoreLoader } from './infrastructure';
 import { serverConfig } from './infrastructure/configs';
+import { DIContainer } from './infrastructure/di/container';
 
 const PORT = serverConfig.port;
 
 async function bootstrap() {
   try {
-    // 1. Initialize core (DBs, Env validation)
     await CoreLoader.init();
     console.log('Core services initialized successfully');
 
-    // 2. Start Express server
+    DIContainer.initializeQueues();
+
     app.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });

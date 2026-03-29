@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { BillingTier } from '../../domain/models';
 
 export const redeemCouponDto = z.object({
   code: z.string().min(1).max(20).trim(),
@@ -11,8 +12,8 @@ export const addCUsDto = z.object({
 
 export const createCouponDto = z.object({
   code: z.string().min(1).max(20).trim().optional(),
-  tier: z.enum(['free', 'basic', 'pro']),
+  tier: z.enum(BillingTier).refine((t) => t !== BillingTier.NONE, { message: 'Invalid tier' }),
   cuGrant: z.number().positive(),
   maxUses: z.number().int().positive(),
-  expiresAt: z.string().datetime().optional(),
+  expiresAt: z.date().optional(),
 });

@@ -10,7 +10,12 @@ export interface ILLMProvider {
     messages: IMessage[],
     tools?: IToolDefinition[],
     systemInstruction?: string,
-  ): Promise<{ content: string; toolCalls?: IToolCall[]; thoughtSignature?: string; usage?: TokenUsage }>;
+  ): Promise<{
+    content: string;
+    toolCalls?: IToolCall[];
+    thoughtSignature?: string;
+    usage?: TokenUsage;
+  }>;
   streamText(
     messages: IMessage[],
     tools?: IToolDefinition[],

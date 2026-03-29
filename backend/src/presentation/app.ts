@@ -11,13 +11,11 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Request logging middleware
 app.use((req, _res, next) => {
   logger.info(`${req.method} ${req.url}`);
   next();
 });
 
-// Apply rate limiter globally
 app.use(rateLimiterMiddleware);
 
 app.get('/health', (_req, res) => {
@@ -26,5 +24,4 @@ app.get('/health', (_req, res) => {
 
 app.use('/api', routes);
 
-// Global Error Handler (Must be after routes)
 app.use(ErrorMiddleware.handleError);

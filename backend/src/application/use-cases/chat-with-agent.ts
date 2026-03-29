@@ -8,8 +8,9 @@ import { AgentOrchestratorService } from '../services/agent-orchestrator';
 import { IMessage, MessageRole } from '../../domain/models';
 import { NotFoundError, UnauthorizedError, InsufficientBalanceError } from '../../domain/errors';
 import { DomainToolService } from '../../domain/services/tool-service';
-import { BASE_SYSTEM_PROMPT } from '../../infrastructure/constants/prompts';
+import { BASE_SYSTEM_PROMPT } from '../../domain/constants/prompts';
 import { DeductCUsUseCase } from './deduct-cus';
+import type { ILogger } from '../../domain/services/logger';
 
 export interface ChatRequest {
   agentId: string;
@@ -25,6 +26,7 @@ export class ChatWithAgentUseCase {
     private orchestrator: AgentOrchestratorService,
     private billingRepo: IBillingRepository,
     private deductCUs: DeductCUsUseCase,
+    private logger: ILogger,
   ) {}
 
   private async checkBalance(userId: string): Promise<void> {
@@ -104,7 +106,7 @@ export class ChatWithAgentUseCase {
 
     // Post-chat: deduct CUs based on token usage
     try {
-      const usage = (result as any).usage;
+      const usage = result.usage;
       if (usage) {
         await this.deductCUs.execute({
           userId: request.userId,
@@ -112,11 +114,15 @@ export class ChatWithAgentUseCase {
           conversationId: conversation.conversationId,
           inputTokens: usage.promptTokens || 0,
           outputTokens: usage.completionTokens || 0,
-          cachedTokens: usage.cachedTokens || 0,
+          cachedTokens: 0,
         });
       }
-    } catch {
-      // Don't fail the chat if billing deduction fails — log it but return the response
+    } catch (error) {
+      this.logger.error('Failed to deduct CUs after chat', {
+        userId: request.userId,
+        agentId: request.agentId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     return result.content;
@@ -194,9 +200,9 @@ export class ChatWithAgentUseCase {
         });
       }
       // Accumulate token usage from stream chunks
-      if ((chunk as any).usage) {
-        totalInputTokens += (chunk as any).usage.promptTokens || 0;
-        totalOutputTokens += (chunk as any).usage.completionTokens || 0;
+      if (chunk.usage) {
+        totalInputTokens += chunk.usage.promptTokens || 0;
+        totalOutputTokens += chunk.usage.completionTokens || 0;
       }
       yield chunk;
     }
@@ -213,8 +219,12 @@ export class ChatWithAgentUseCase {
           cachedTokens: 0,
         });
       }
-    } catch {
-      // Don't fail the stream if billing deduction fails
+    } catch (error) {
+      this.logger.error('Failed to deduct CUs after stream', {
+        userId: request.userId,
+        agentId: agent.agentId,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }
 }

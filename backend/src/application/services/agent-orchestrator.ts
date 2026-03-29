@@ -1,7 +1,7 @@
 import { ILLMProvider, IToolExecutor, ToolExecutionContext } from '../../domain/ports';
 import { IMessage, IToolDefinition, MessageRole, IToolCall } from '../../domain/models';
 import { LLMProviderError } from '../../domain/errors';
-import { logger } from '@/infrastructure/utils/logger';
+import type { ILogger } from '../../domain/services/logger';
 
 export interface OrchestratorResult {
   content: string;
@@ -13,6 +13,7 @@ export class AgentOrchestratorService {
   constructor(
     private llmProvider: ILLMProvider,
     private toolExecutor: IToolExecutor,
+    private logger: ILogger,
   ) {}
 
   async run(
@@ -72,7 +73,11 @@ export class AgentOrchestratorService {
         continue;
       }
 
-      return { content: response.content, newMessages, ...(response.usage ? { usage: response.usage } : {}) };
+      return {
+        content: response.content,
+        newMessages,
+        ...(response.usage ? { usage: response.usage } : {}),
+      };
     }
     throw new LLMProviderError('Agent loop exceeded maximum iterations.', 'MAX_ITERATIONS_REACHED');
   }
@@ -82,8 +87,16 @@ export class AgentOrchestratorService {
     tools: IToolDefinition[],
     systemInstruction?: string,
     context?: ToolExecutionContext,
-  ): AsyncGenerator<{ content: string; newMessages?: IMessage[]; usage?: { promptTokens: number; completionTokens: number } }, void, unknown> {
-    logger.info('Starting agent orchestration', {
+  ): AsyncGenerator<
+    {
+      content: string;
+      newMessages?: IMessage[];
+      usage?: { promptTokens: number; completionTokens: number };
+    },
+    void,
+    unknown
+  > {
+    this.logger.info('Starting agent orchestration', {
       agentId: context?.agentId,
       conversationId: context?.conversationId,
       userId: context?.userId,
@@ -163,7 +176,7 @@ export class AgentOrchestratorService {
         'Agent loop exceeded maximum iterations.',
         'MAX_ITERATIONS_REACHED',
       );
-    } catch (error: any) {
+    } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       yield { content: `\n\n[Error: ${errorMessage}]` };
       throw error;

@@ -1,8 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { createToolDto, updateToolDto } from './dto';
 import { AuthRequest } from '../middlewares/auth';
-import { logger } from '../../infrastructure/utils/logger';
 import { DIContainer } from '../../infrastructure/di/container';
+import { UnauthorizedError } from '../../domain/errors';
 
 export class ToolController {
   constructor() {}
@@ -14,7 +14,7 @@ export class ToolController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const dto = createToolDto.parse(req.body);
@@ -27,7 +27,7 @@ export class ToolController {
         ...(dto.headers ? { headers: dto.headers } : {}),
         ...(dto.apiSchema ? { apiSchema: dto.apiSchema } : {}),
       });
-      logger.info('Tool created via port', { toolId: tool.toolId, userId });
+      DIContainer.logger.info('Tool created via port', { toolId: tool.toolId, userId });
       return res.status(201).json(tool);
     } catch (error) {
       return next(error);
@@ -41,7 +41,7 @@ export class ToolController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const tools = await DIContainer.listUserTools.execute(userId);
@@ -58,7 +58,7 @@ export class ToolController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const toolId = req.params['toolId'];
@@ -81,7 +81,7 @@ export class ToolController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const toolId = req.params['toolId'];
@@ -93,7 +93,7 @@ export class ToolController {
         dto as any,
         userId as string,
       );
-      logger.info('Tool updated via port', { toolId, userId });
+      DIContainer.logger.info('Tool updated via port', { toolId, userId });
       return res.status(200).json(tool);
     } catch (error) {
       return next(error);
@@ -107,7 +107,7 @@ export class ToolController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const toolId = req.params['toolId'];
@@ -117,7 +117,7 @@ export class ToolController {
       if (!success) {
         return res.status(404).json({ error: 'Tool not found' });
       }
-      logger.info('Tool deleted via port', { toolId, userId });
+      DIContainer.logger.info('Tool deleted via port', { toolId, userId });
       return res.status(200).json({ ok: true });
     } catch (error) {
       return next(error);

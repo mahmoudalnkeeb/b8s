@@ -1,8 +1,8 @@
 import { NextFunction, Response } from 'express';
 import { AuthRequest } from '../middlewares/auth';
 import { createConversationDto, sendMessageDto } from './dto';
-import { logger } from '../../infrastructure/utils/logger';
 import { DIContainer } from '../../infrastructure/di/container';
+import { UnauthorizedError } from '../../domain/errors';
 
 export class ConversationController {
   constructor() {}
@@ -14,7 +14,7 @@ export class ConversationController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const dto = createConversationDto.parse(req.body);
@@ -22,7 +22,7 @@ export class ConversationController {
         agentId: dto.agentId,
         userId,
       });
-      logger.info('Conversation created via port', {
+      DIContainer.logger.info('Conversation created via port', {
         conversationId: conversation.conversationId,
         userId,
       });
@@ -39,7 +39,7 @@ export class ConversationController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const conversations = await DIContainer.listUserConversations.execute(userId);
@@ -56,7 +56,7 @@ export class ConversationController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const conversationId = req.params['conversationId'];
@@ -95,7 +95,7 @@ export class ConversationController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const conversationId = req.params['conversationId'];
@@ -104,7 +104,7 @@ export class ConversationController {
 
       const dto = sendMessageDto.parse(req.body);
 
-      logger.info('Message received via port', { conversationId, userId });
+      DIContainer.logger.info('Message received via port', { conversationId, userId });
 
       res.setHeader('Content-Type', 'text/event-stream');
       res.setHeader('Cache-Control', 'no-cache');
@@ -126,13 +126,13 @@ export class ConversationController {
             res.write(`data: ${JSON.stringify({ chunk: chunk.content })}\n\n`);
           }
         }
-        logger.info('Assistant response completed via stream', {
+        DIContainer.logger.info('Assistant response completed via stream', {
           conversationId,
           userId,
         });
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
-        logger.error('Hexagonal Streaming Error', error);
+        DIContainer.logger.error('Hexagonal Streaming Error', error);
         res.write(
           `data: ${JSON.stringify({
             error: message,
@@ -155,7 +155,7 @@ export class ConversationController {
   ): Promise<Response | void> => {
     try {
       const user = req.user;
-      if (!user) throw new Error('Unauthorized');
+      if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
       const conversationId = req.params['conversationId'];
@@ -166,7 +166,7 @@ export class ConversationController {
       if (!success) {
         return res.status(404).json({ error: 'Conversation not found' });
       }
-      logger.info('Conversation deleted via port', { conversationId, userId });
+      DIContainer.logger.info('Conversation deleted via port', { conversationId, userId });
       return res.status(200).json({ ok: true });
     } catch (error) {
       return next(error);

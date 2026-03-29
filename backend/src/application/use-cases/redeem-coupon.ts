@@ -1,5 +1,6 @@
 import { IBillingRepository, ICouponRepository } from '../../domain/ports/billing-repository';
 import { NotFoundError, DomainError } from '../../domain/errors';
+import { BillingTier } from '../../domain/models';
 
 export interface RedeemCouponRequest {
   userId: string;
@@ -35,21 +36,21 @@ export class RedeemCouponUseCase {
     }
 
     // Find or create billing account
-    let account = await this.billingRepo.findByUserId(request.userId);
+    const account = await this.billingRepo.findByUserId(request.userId);
     if (!account) {
-      account = await this.billingRepo.create({
+      await this.billingRepo.create({
         userId: request.userId,
-        tier: coupon.tier as any,
+        tier: coupon.tier as BillingTier,
         cuBalance: 0,
         grantedCuBalance: coupon.cuGrant,
         totalCuUsed: 0,
         billingCycleStart: new Date(),
-      } as any);
+      });
     } else {
       await this.billingRepo.updateBalance(request.userId, {
-        tier: coupon.tier as any,
+        tier: coupon.tier as BillingTier,
         grantedCuBalance: account.grantedCuBalance + coupon.cuGrant,
-      } as any);
+      });
     }
 
     // Track coupon usage

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AccessType, MemoryReadAccess, MemoryWriteAccess } from '../../infrastructure/db/models';
+import { AccessType, MemoryReadAccess, MemoryWriteAccess } from '../../domain/models';
 
 export const createAgentDto = z.object({
   name: z.string().min(2).max(100).trim(),

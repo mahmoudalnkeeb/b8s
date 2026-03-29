@@ -1,10 +1,12 @@
 import { AgentOrchestratorService } from './agent-orchestrator';
 import { ILLMProvider, IToolExecutor } from '../../domain/ports';
 import { IMessage, MessageRole, IToolDefinition } from '../../domain/models';
+import type { ILogger } from '../../domain/services/logger';
 
 describe('AgentOrchestratorService Reproduction', () => {
   let llmProvider: jest.Mocked<ILLMProvider>;
   let toolExecutor: jest.Mocked<IToolExecutor>;
+  let logger: ILogger;
   let orchestrator: AgentOrchestratorService;
 
   beforeEach(() => {
@@ -16,7 +18,13 @@ describe('AgentOrchestratorService Reproduction', () => {
     toolExecutor = {
       execute: jest.fn(),
     };
-    orchestrator = new AgentOrchestratorService(llmProvider, toolExecutor);
+    logger = {
+      info: jest.fn(),
+      warn: jest.fn(),
+      error: jest.fn(),
+      debug: jest.fn(),
+    };
+    orchestrator = new AgentOrchestratorService(llmProvider, toolExecutor, logger);
   });
 
   it('should continue generating after a tool call in runStream', async () => {

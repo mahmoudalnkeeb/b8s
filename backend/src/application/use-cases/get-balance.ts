@@ -10,7 +10,7 @@ export class GetBalanceUseCase {
   async execute(userId: string) {
     const user = await this.userRepo.findById(userId);
     const account = await this.billingRepo.findByUserId(userId);
-    
+
     if (!account) {
       return {
         role: user?.role || 'user',
@@ -29,4 +29,3 @@ export class GetBalanceUseCase {
     };
   }
 }
-

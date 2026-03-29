@@ -1,5 +1,6 @@
 import { IBillingRepository } from '../../domain/ports/billing-repository';
 import { NotFoundError } from '../../domain/errors';
+import { BillingTier } from '../../domain/models';
 
 export interface AdminAddCUsRequest {
   userId: string;
@@ -16,20 +17,20 @@ export class AdminAddCUsUseCase {
       // Create a billing account if none exists
       account = await this.billingRepo.create({
         userId: request.userId,
-        tier: 'none' as any,
+        tier: BillingTier.NONE,
         cuBalance: request.asGranted ? 0 : request.amount,
         grantedCuBalance: request.asGranted ? request.amount : 0,
         totalCuUsed: 0,
         billingCycleStart: new Date(),
-      } as any);
+      });
       return { cuBalance: account.cuBalance, grantedCuBalance: account.grantedCuBalance };
     }
 
-    const updates = request.asGranted
+    const updates: Partial<{ cuBalance: number; grantedCuBalance: number }> = request.asGranted
       ? { grantedCuBalance: account.grantedCuBalance + request.amount }
       : { cuBalance: account.cuBalance + request.amount };
 
-    const updated = await this.billingRepo.updateBalance(request.userId, updates as any);
+    const updated = await this.billingRepo.updateBalance(request.userId, updates);
     if (!updated) throw new NotFoundError('User billing account not found', 'BILLING_NOT_FOUND');
 
     return { cuBalance: updated.cuBalance, grantedCuBalance: updated.grantedCuBalance };

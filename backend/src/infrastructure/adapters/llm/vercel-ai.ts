@@ -323,7 +323,12 @@ export class VercelAiAdapter implements ILLMProvider {
     messages: IMessage[],
     tools?: IToolDefinition[],
     systemInstruction?: string,
-  ): Promise<{ content: string; toolCalls?: IToolCall[]; thoughtSignature?: string; usage?: { promptTokens: number; completionTokens: number } }> {
+  ): Promise<{
+    content: string;
+    toolCalls?: IToolCall[];
+    thoughtSignature?: string;
+    usage?: { promptTokens: number; completionTokens: number };
+  }> {
     // Apply message windowing to reduce tokens
     const windowedMessages = applyMessageWindow(messages);
 
@@ -374,7 +379,14 @@ export class VercelAiAdapter implements ILLMProvider {
           };
         }),
         ...(thoughtSignature ? { thoughtSignature } : {}),
-        ...(result.usage ? { usage: { promptTokens: (result.usage as any).promptTokens || 0, completionTokens: (result.usage as any).completionTokens || 0 } } : {}),
+        ...(result.usage
+          ? {
+              usage: {
+                promptTokens: (result.usage as any).promptTokens || 0,
+                completionTokens: (result.usage as any).completionTokens || 0,
+              },
+            }
+          : {}),
       };
 
       // Cache responses WITHOUT tool calls (tool results vary between requests).
@@ -414,7 +426,12 @@ export class VercelAiAdapter implements ILLMProvider {
     tools?: IToolDefinition[],
     systemInstruction?: string,
   ): AsyncGenerator<
-    { content: string; toolCalls?: IToolCall[]; thoughtSignature?: string; usage?: { promptTokens: number; completionTokens: number } },
+    {
+      content: string;
+      toolCalls?: IToolCall[];
+      thoughtSignature?: string;
+      usage?: { promptTokens: number; completionTokens: number };
+    },
     void,
     unknown
   > {
@@ -462,12 +479,14 @@ export class VercelAiAdapter implements ILLMProvider {
           const usage = (part as any).totalUsage || (part as any).usage;
           yield {
             content: '',
-            ...(usage ? {
-              usage: {
-                promptTokens: usage.promptTokens || 0,
-                completionTokens: usage.completionTokens || 0,
-              }
-            } : {})
+            ...(usage
+              ? {
+                  usage: {
+                    promptTokens: usage.promptTokens || 0,
+                    completionTokens: usage.completionTokens || 0,
+                  },
+                }
+              : {}),
           };
         }
       }

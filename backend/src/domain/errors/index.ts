@@ -18,7 +18,21 @@ export class QuotaExceededError extends DomainError {
 export class DatabaseError extends DomainError {}
 export class ToolExecutionError extends DomainError {}
 export class NotFoundError extends DomainError {}
-export class UnauthorizedError extends DomainError {}
+export class UnauthorizedError extends DomainError {
+  constructor(message: string = 'Unauthorized', code?: string) {
+    super(message, code);
+  }
+}
+export class ConflictError extends DomainError {
+  constructor(message: string, code?: string) {
+    super(message, code || 'CONFLICT');
+  }
+}
+export class ValidationError extends DomainError {
+  constructor(message: string, code?: string) {
+    super(message, code || 'VALIDATION_ERROR');
+  }
+}
 export class InsufficientBalanceError extends DomainError {
   constructor(message: string = 'Insufficient CU balance. Please top up or upgrade your plan.') {
     super(message, 'INSUFFICIENT_BALANCE');

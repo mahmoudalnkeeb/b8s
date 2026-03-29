@@ -18,29 +18,32 @@ export function extractMetadata(text: string): ExtractedMetadata {
   };
 
   // Extract URLs (with or without protocol) - exclude common false positives like Node.js
-  const urlRegex = /(?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.(?:com|org|net|io|dev|ai|app|tech|co|me|info|biz|us|uk|ca|de|fr|jp|cn|ru|br|in|au|nl|se|no|dk|fi|pl|ch|at|be|pt|es|it|gr|cz|ro|hu|bg|hr|sk|si|lt|lv|ee|lu|mt|cy)[a-zA-Z0-9()]*?(?:\/[-a-zA-Z0-9()@:%_\+.~#?&\/=]*)?/gi;
+  const urlRegex =
+    /(?:https?:\/\/)?(?:www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.(?:com|org|net|io|dev|ai|app|tech|co|me|info|biz|us|uk|ca|de|fr|jp|cn|ru|br|in|au|nl|se|no|dk|fi|pl|ch|at|be|pt|es|it|gr|cz|ro|hu|bg|hr|sk|si|lt|lv|ee|lu|mt|cy)[a-zA-Z0-9()]*?(?:\/[-a-zA-Z0-9()@:%_+.~#?&/=]*)?/gi;
   const urls = text.match(urlRegex);
   if (urls) {
     // Filter out common false positives
-    const filteredUrls = urls.filter(u => {
+    const filteredUrls = urls.filter((u) => {
       const lower = u.toLowerCase();
-      return !['node.js', 'express.js', 'socket.io', 'react.js', 'vue.js', 'angular.js'].some(fp => lower === fp);
+      return !['node.js', 'express.js', 'socket.io', 'react.js', 'vue.js', 'angular.js'].some(
+        (fp) => lower === fp,
+      );
     });
-    metadata.urls = [...new Set(filteredUrls.map(u => u.replace(/[.,;:]$/, '')))];
+    metadata.urls = [...new Set(filteredUrls.map((u) => u.replace(/[.,;:]$/, '')))];
   }
 
   // Extract emails
   const emailRegex = /[\w.-]+@[\w.-]+\.\w+/gi;
   const emails = text.match(emailRegex);
   if (emails) {
-    metadata.emails = [...new Set(emails.map(e => e.replace(/[.,;:]$/, '')))];
+    metadata.emails = [...new Set(emails.map((e) => e.replace(/[.,;:]$/, '')))];
   }
 
   // Extract phone numbers (various formats) - must start with + or ( for international
   const phoneRegex = /(?:\+\d{1,3}[-.\s]?\d{4,}|\(\d{3}\)[-.\s]?\d{3}[-.\s]?\d{4})/g;
   const phones = text.match(phoneRegex);
   if (phones) {
-    metadata.phones = [...new Set(phones.map(p => p.trim()))];
+    metadata.phones = [...new Set(phones.map((p) => p.trim()))];
   }
 
   // Extract GitHub profile
@@ -65,14 +68,4 @@ export function extractMetadata(text: string): ExtractedMetadata {
   }
 
   return metadata;
-}
-
-export function hasMetadata(text: string): boolean {
-  const metadata = extractMetadata(text);
-  return (
-    metadata.urls.length > 0 ||
-    metadata.emails.length > 0 ||
-    metadata.phones.length > 0 ||
-    Object.keys(metadata.socialLinks).length > 0
-  );
 }

@@ -1,4 +1,4 @@
-import { IBillingAccount, ICoupon, IUsageLog } from '../../infrastructure/db/models';
+import { IBillingAccount, ICoupon, IUsageLog } from '../models';
 
 export interface IBillingRepository {
   findByUserId(userId: string): Promise<IBillingAccount | null>;
