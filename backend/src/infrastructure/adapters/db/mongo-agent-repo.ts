@@ -81,10 +81,11 @@ export class MongoAgentRepository implements IAgentRepository {
       };
 
       if (search) {
+        const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         query['$or'] = [
-          { name: { $regex: search, $options: 'i' } },
-          { description: { $regex: search, $options: 'i' } },
-          { tags: { $in: [new RegExp(search, 'i')] } },
+          { name: { $regex: escaped, $options: 'i' } },
+          { description: { $regex: escaped, $options: 'i' } },
+          { tags: { $in: [new RegExp(escaped, 'i')] } },
         ];
       }
 

@@ -32,6 +32,7 @@ export class QdrantAdapter implements IVectorStore {
         message.includes('Not found')
       ) {
         try {
+          // eslint-disable-next-line preserve-caught-error
           if (!memory.vector) throw new Error('Vector is required for collection creation');
           await this.client.createCollection(collection, {
             vectors: {

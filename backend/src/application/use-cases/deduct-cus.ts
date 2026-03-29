@@ -48,15 +48,21 @@ export class DeductCUsUseCase {
       throw new InsufficientBalanceError();
     }
 
-    // Deduct from granted balance first, then paid balance
+    // Deduct from granted balance first, then paid balance (atomic)
     const grantedDeduction = Math.min(account.grantedCuBalance, cuCost);
     const paidDeduction = cuCost - grantedDeduction;
 
-    await this.billingRepo.updateBalance(request.userId, {
-      grantedCuBalance: account.grantedCuBalance - grantedDeduction,
-      cuBalance: account.cuBalance - paidDeduction,
-      totalCuUsed: account.totalCuUsed + cuCost,
-    });
+    const updated = await this.billingRepo.deductBalanceAtomic(
+      request.userId,
+      grantedDeduction,
+      paidDeduction,
+      cuCost,
+    );
+
+    // If null, another request drained the balance between check and atomic update
+    if (!updated) {
+      throw new InsufficientBalanceError();
+    }
 
     // Log the usage
     await this.billingRepo.logUsage({

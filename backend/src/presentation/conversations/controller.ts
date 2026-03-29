@@ -2,11 +2,9 @@ import { NextFunction, Response } from 'express';
 import { AuthRequest } from '../middlewares/auth';
 import { createConversationDto, sendMessageDto } from './dto';
 import { DIContainer } from '../../infrastructure/di/container';
-import { UnauthorizedError } from '../../domain/errors';
+import { UnauthorizedError, ValidationError } from '../../domain/errors';
 
 export class ConversationController {
-  constructor() {}
-
   public create = async (
     req: AuthRequest,
     res: Response,
@@ -61,7 +59,7 @@ export class ConversationController {
 
       const conversationId = req.params['conversationId'];
       if (!conversationId || typeof conversationId !== 'string')
-        throw new Error('Conversation ID is required');
+        throw new ValidationError('Conversation ID is required', 'MISSING_CONVERSATION_ID');
 
       const conversation = await DIContainer.getConversationById.execute(conversationId, userId);
       if (!conversation) {
@@ -100,7 +98,7 @@ export class ConversationController {
 
       const conversationId = req.params['conversationId'];
       if (!conversationId || typeof conversationId !== 'string')
-        throw new Error('Conversation ID is required');
+        throw new ValidationError('Conversation ID is required', 'MISSING_CONVERSATION_ID');
 
       const dto = sendMessageDto.parse(req.body);
 
@@ -112,6 +110,13 @@ export class ConversationController {
       res.setHeader('X-Accel-Buffering', 'no');
       res.flushHeaders();
 
+      // Track if client disconnected
+      let clientDisconnected = false;
+      req.on('close', () => {
+        clientDisconnected = true;
+        DIContainer.logger.info('Client disconnected from stream', { conversationId, userId });
+      });
+
       try {
         const agentId = (req.body as Record<string, unknown>)['agentId'] as string | undefined;
         const stream = DIContainer.chatWithAgent.executeStream({
@@ -122,6 +127,7 @@ export class ConversationController {
         });
 
         for await (const chunk of stream) {
+          if (clientDisconnected) break;
           if (chunk.content) {
             res.write(`data: ${JSON.stringify({ chunk: chunk.content })}\n\n`);
           }
@@ -133,14 +139,18 @@ export class ConversationController {
       } catch (error: unknown) {
         const message = error instanceof Error ? error.message : String(error);
         DIContainer.logger.error('Hexagonal Streaming Error', error);
-        res.write(
-          `data: ${JSON.stringify({
-            error: message,
-          })}\n\n`,
-        );
+        if (!clientDisconnected) {
+          res.write(
+            `data: ${JSON.stringify({
+              error: message,
+            })}\n\n`,
+          );
+        }
       } finally {
-        res.write(`data: [DONE]\n\n`);
-        res.end();
+        if (!clientDisconnected) {
+          res.write(`data: [DONE]\n\n`);
+          res.end();
+        }
       }
       return;
     } catch (error) {
@@ -160,7 +170,7 @@ export class ConversationController {
 
       const conversationId = req.params['conversationId'];
       if (!conversationId || typeof conversationId !== 'string')
-        throw new Error('Conversation ID is required');
+        throw new ValidationError('Conversation ID is required', 'MISSING_CONVERSATION_ID');
 
       const success = await DIContainer.deleteConversation.execute(conversationId, userId);
       if (!success) {

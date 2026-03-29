@@ -72,11 +72,12 @@ export class ErrorMiddleware {
     }
 
     // Unexpected errors
+    const isProduction = process.env['NODE_ENV'] === 'production';
     const errorMessage = err instanceof Error ? err.message : 'Internal server error';
     errorMonitor.captureException(err instanceof Error ? err : new Error(String(err)), context);
     return res.status(500).json({
       status: 'error',
-      message: errorMessage,
+      message: isProduction ? 'Internal server error' : errorMessage,
     });
   }
 }

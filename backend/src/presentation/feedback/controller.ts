@@ -5,8 +5,6 @@ import { DIContainer } from '../../infrastructure/di/container';
 import { UnauthorizedError } from '../../domain/errors';
 
 export class FeedbackController {
-  constructor() {}
-
   public submit = async (
     req: AuthRequest,
     res: Response,

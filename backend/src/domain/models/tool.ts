@@ -5,8 +5,8 @@ export interface IToolDefinition {
 }
 
 export interface IToolCall {
-  id?: string;
+  id?: string | undefined;
   name: string;
   arguments: Record<string, unknown>;
-  thoughtSignature?: string;
+  thoughtSignature?: string | undefined;
 }

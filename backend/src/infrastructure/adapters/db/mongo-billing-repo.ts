@@ -45,6 +45,36 @@ export class MongoBillingRepository implements IBillingRepository {
     }
   }
 
+  async deductBalanceAtomic(
+    userId: string,
+    grantedDeduction: number,
+    paidDeduction: number,
+    cuCost: number,
+  ): Promise<IBillingAccount | null> {
+    try {
+      // Atomically deduct using $inc with a guard condition
+      return await BillingAccountModel.findOneAndUpdate(
+        {
+          userId,
+          $expr: {
+            $gte: [{ $add: ['$grantedCuBalance', '$cuBalance'] }, cuCost],
+          },
+        },
+        {
+          $inc: {
+            grantedCuBalance: -grantedDeduction,
+            cuBalance: -paidDeduction,
+            totalCuUsed: cuCost,
+          },
+        },
+        { new: true },
+      );
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new DatabaseError(message, 'MONGO_DEDUCT_BALANCE_ERROR');
+    }
+  }
+
   async logUsage(log: Partial<IUsageLog>): Promise<void> {
     try {
       await UsageLogModel.create(log);

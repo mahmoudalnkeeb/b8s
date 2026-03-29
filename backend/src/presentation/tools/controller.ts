@@ -2,11 +2,9 @@ import { NextFunction, Response } from 'express';
 import { createToolDto, updateToolDto } from './dto';
 import { AuthRequest } from '../middlewares/auth';
 import { DIContainer } from '../../infrastructure/di/container';
-import { UnauthorizedError } from '../../domain/errors';
+import { UnauthorizedError, ValidationError } from '../../domain/errors';
 
 export class ToolController {
-  constructor() {}
-
   public create = async (
     req: AuthRequest,
     res: Response,
@@ -62,7 +60,8 @@ export class ToolController {
       const userId = user.userId;
 
       const toolId = req.params['toolId'];
-      if (!toolId || typeof toolId !== 'string') throw new Error('Tool ID is required');
+      if (!toolId || typeof toolId !== 'string')
+        throw new ValidationError('Tool ID is required', 'MISSING_TOOL_ID');
 
       const tool = await DIContainer.getToolById.execute(toolId as string, userId as string);
       if (!tool) {
@@ -85,7 +84,8 @@ export class ToolController {
       const userId = user.userId;
 
       const toolId = req.params['toolId'];
-      if (!toolId || typeof toolId !== 'string') throw new Error('Tool ID is required');
+      if (!toolId || typeof toolId !== 'string')
+        throw new ValidationError('Tool ID is required', 'MISSING_TOOL_ID');
 
       const dto = updateToolDto.parse(req.body);
       const tool = await DIContainer.updateTool.execute(
@@ -111,7 +111,8 @@ export class ToolController {
       const userId = user.userId;
 
       const toolId = req.params['toolId'];
-      if (!toolId || typeof toolId !== 'string') throw new Error('Tool ID is required');
+      if (!toolId || typeof toolId !== 'string')
+        throw new ValidationError('Tool ID is required', 'MISSING_TOOL_ID');
 
       const success = await DIContainer.deleteTool.execute(toolId as string, userId as string);
       if (!success) {

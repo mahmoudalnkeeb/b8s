@@ -10,11 +10,9 @@ import {
   IAgent,
   IToolDefinition,
 } from '../../domain/models';
-import { UnauthorizedError } from '../../domain/errors';
+import { UnauthorizedError, ValidationError } from '../../domain/errors';
 
 export class AgentController {
-  constructor() {}
-
   private async resolveToolDefinitions(toolIds: string[]): Promise<IToolDefinition[]> {
     const toolDefinitions: IToolDefinition[] = [];
     if (toolIds.length > 0) {
@@ -125,7 +123,8 @@ export class AgentController {
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
 
       const agent = await DIContainer.getAgentById.execute(agentId as string, userId as string);
       return res.status(200).json(agent);
@@ -145,7 +144,8 @@ export class AgentController {
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
 
       const dto = updateAgentDto.parse(req.body);
 
@@ -178,7 +178,8 @@ export class AgentController {
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
 
       const agent = await DIContainer.updateAgent.execute(
         agentId as string,
@@ -203,7 +204,8 @@ export class AgentController {
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
 
       const success = await DIContainer.deleteAgent.execute(agentId as string, userId as string);
       if (!success) {
@@ -227,7 +229,8 @@ export class AgentController {
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
 
       const file = req.file;
 
@@ -267,10 +270,21 @@ export class AgentController {
     next: NextFunction,
   ): Promise<Response | void> => {
     try {
-      const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      const user = req.user;
+      if (!user) throw new UnauthorizedError();
+      const userId = user.userId;
 
-      const docs = await DIContainer.listKnowledgeBase.execute(agentId as string);
+      const agentId = req.params['agentId'];
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
+
+      // Verify agent ownership
+      const agent = await DIContainer.agentRepo.findById(agentId);
+      if (!agent || agent.ownerId !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const docs = await DIContainer.listKnowledgeBase.execute(agentId);
       return res.status(200).json(docs);
     } catch (error) {
       return next(error);
@@ -290,7 +304,7 @@ export class AgentController {
       const agentId = req.params['agentId'];
       const docId = req.params['docId'];
       if (!agentId || typeof agentId !== 'string' || !docId || typeof docId !== 'string') {
-        throw new Error('Agent ID and Doc ID are required');
+        throw new ValidationError('Agent ID and Doc ID are required', 'MISSING_IDS');
       }
 
       const result = await DIContainer.deleteKnowledgeBaseDoc.execute({
@@ -310,16 +324,23 @@ export class AgentController {
     next: NextFunction,
   ): Promise<Response | void> => {
     try {
+      const user = req.user;
+      if (!user) throw new UnauthorizedError();
+      const userId = user.userId;
+
       const agentId = req.params['agentId'];
       const jobId = req.params['jobId'];
       if (!agentId || typeof agentId !== 'string' || !jobId || typeof jobId !== 'string') {
-        throw new Error('Agent ID and Job ID are required');
+        throw new ValidationError('Agent ID and Job ID are required', 'MISSING_IDS');
       }
 
-      const job = await DIContainer.getIngestionJobStatus.execute(
-        jobId as string,
-        agentId as string,
-      );
+      // Verify agent ownership
+      const agent = await DIContainer.agentRepo.findById(agentId);
+      if (!agent || agent.ownerId !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const job = await DIContainer.getIngestionJobStatus.execute(jobId, agentId);
       if (!job) {
         return res.status(404).json({ error: 'Job not found' });
       }
@@ -335,12 +356,22 @@ export class AgentController {
     next: NextFunction,
   ): Promise<Response | void> => {
     try {
+      const user = req.user;
+      if (!user) throw new UnauthorizedError();
+      const userId = user.userId;
+
       const agentId = req.params['agentId'];
       if (!agentId || typeof agentId !== 'string') {
-        throw new Error('Agent ID is required');
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
       }
 
-      const job = await DIContainer.getAgentLatestJob.execute(agentId as string);
+      // Verify agent ownership
+      const agent = await DIContainer.agentRepo.findById(agentId);
+      if (!agent || agent.ownerId !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const job = await DIContainer.getAgentLatestJob.execute(agentId);
 
       if (!job) {
         return res.status(404).json({ error: 'Job not found' });
@@ -357,10 +388,21 @@ export class AgentController {
     next: NextFunction,
   ): Promise<Response | void> => {
     try {
-      const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      const user = req.user;
+      if (!user) throw new UnauthorizedError();
+      const userId = user.userId;
 
-      const memories = await DIContainer.listAgentMemories.execute(agentId as string);
+      const agentId = req.params['agentId'];
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
+
+      // Verify agent ownership
+      const agent = await DIContainer.agentRepo.findById(agentId);
+      if (!agent || agent.ownerId !== userId) {
+        return res.status(403).json({ error: 'Forbidden' });
+      }
+
+      const memories = await DIContainer.listAgentMemories.execute(agentId);
       return res.status(200).json(memories);
     } catch (error) {
       return next(error);
@@ -378,7 +420,8 @@ export class AgentController {
       const userId = user.userId;
 
       const agentId = req.params['agentId'];
-      if (!agentId || typeof agentId !== 'string') throw new Error('Agent ID is required');
+      if (!agentId || typeof agentId !== 'string')
+        throw new ValidationError('Agent ID is required', 'MISSING_AGENT_ID');
 
       const result = await DIContainer.toggleAgentPin.execute(agentId as string, userId as string);
       return res.status(200).json(result);

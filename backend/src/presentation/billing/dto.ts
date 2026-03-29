@@ -12,8 +12,10 @@ export const addCUsDto = z.object({
 
 export const createCouponDto = z.object({
   code: z.string().min(1).max(20).trim().optional(),
-  tier: z.enum(BillingTier).refine((t) => t !== BillingTier.NONE, { message: 'Invalid tier' }),
+  tier: z
+    .nativeEnum(BillingTier)
+    .refine((t) => t !== BillingTier.NONE, { message: 'Invalid tier' }),
   cuGrant: z.number().positive(),
   maxUses: z.number().int().positive(),
-  expiresAt: z.date().optional(),
+  expiresAt: z.string().datetime().optional(),
 });

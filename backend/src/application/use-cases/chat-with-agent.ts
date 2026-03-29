@@ -6,7 +6,12 @@ import {
 import { IBillingRepository } from '../../domain/ports/billing-repository';
 import { AgentOrchestratorService } from '../services/agent-orchestrator';
 import { IMessage, MessageRole } from '../../domain/models';
-import { NotFoundError, UnauthorizedError, InsufficientBalanceError } from '../../domain/errors';
+import {
+  NotFoundError,
+  UnauthorizedError,
+  InsufficientBalanceError,
+  ValidationError,
+} from '../../domain/errors';
 import { DomainToolService } from '../../domain/services/tool-service';
 import { BASE_SYSTEM_PROMPT } from '../../domain/constants/prompts';
 import { DeductCUsUseCase } from './deduct-cus';
@@ -74,7 +79,9 @@ export class ChatWithAgentUseCase {
       content: request.userMessage,
       timestamp: new Date(),
     };
-    conversation.messages.push(newUserMessage);
+
+    // Clone messages to avoid mutating caller's object
+    const messages = [...conversation.messages, newUserMessage];
 
     const tools = DomainToolService.getEffectiveTools(agent);
     const context: ToolExecutionContext = {
@@ -86,20 +93,18 @@ export class ChatWithAgentUseCase {
 
     const systemInstruction = BASE_SYSTEM_PROMPT + '\n' + (agent.config.instructions || '');
 
-    const result = await this.orchestrator.run(
-      conversation.messages,
-      tools,
-      systemInstruction,
-      context,
-    );
+    const result = await this.orchestrator.run(messages, tools, systemInstruction, context);
 
-    conversation.messages.push(...result.newMessages);
+    const allMessages = [...messages, ...result.newMessages];
 
     if (isNew) {
-      await this.convoRepo.create(conversation);
+      await this.convoRepo.create({
+        ...conversation,
+        messages: allMessages,
+      });
     } else {
       await this.convoRepo.update(conversation.conversationId, {
-        messages: conversation.messages,
+        messages: allMessages,
         updatedAt: new Date(),
       });
     }
@@ -149,7 +154,7 @@ export class ChatWithAgentUseCase {
     }
 
     if (!request.userMessage || request.userMessage.trim() === '') {
-      throw new Error('Message content cannot be empty');
+      throw new ValidationError('Message content cannot be empty', 'EMPTY_MESSAGE');
     }
 
     const newUserMessage: IMessage = {
@@ -157,13 +162,18 @@ export class ChatWithAgentUseCase {
       content: request.userMessage,
       timestamp: new Date(),
     };
-    conversation.messages.push(newUserMessage);
+
+    // Clone messages to avoid mutating caller's object
+    const messages = [...conversation.messages, newUserMessage];
 
     if (isNew) {
-      await this.convoRepo.create(conversation);
+      await this.convoRepo.create({
+        ...conversation,
+        messages,
+      });
     } else {
       await this.convoRepo.update(conversation.conversationId, {
-        messages: conversation.messages,
+        messages,
         updatedAt: new Date(),
       });
     }
@@ -181,12 +191,7 @@ export class ChatWithAgentUseCase {
 
     const systemInstruction = BASE_SYSTEM_PROMPT + '\n' + (agent.config.instructions || '');
 
-    const stream = this.orchestrator.runStream(
-      conversation.messages,
-      tools,
-      systemInstruction,
-      context,
-    );
+    const stream = this.orchestrator.runStream(messages, tools, systemInstruction, context);
 
     let totalInputTokens = 0;
     let totalOutputTokens = 0;

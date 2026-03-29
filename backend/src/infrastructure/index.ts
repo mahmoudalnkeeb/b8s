@@ -2,6 +2,7 @@ import { MongoDbClient } from './db/mongo';
 import { IVectorDbClient, VectorDbFactory } from './db/vector';
 import { QdrantClient } from '@qdrant/js-client-rest';
 import { Mongoose } from 'mongoose';
+import { DIContainer } from './di/container';
 
 export class CoreLoader {
   private static mongo: MongoDbClient;
@@ -26,6 +27,13 @@ export class CoreLoader {
       console.log(`\nReceived ${signal}. Shutting down gracefully...`);
 
       try {
+        // Clean up LLM adapter resources (prompt cache interval, etc.)
+        DIContainer.llmProvider.destroy();
+
+        // Close queue connections
+        await DIContainer.queueService.close();
+        console.log('Queue service closed.');
+
         await this.mongo.close();
         console.log('MongoDB connection closed.');
         process.exit(0);

@@ -4,6 +4,12 @@ export interface IBillingRepository {
   findByUserId(userId: string): Promise<IBillingAccount | null>;
   create(account: Partial<IBillingAccount>): Promise<IBillingAccount>;
   updateBalance(userId: string, updates: Partial<IBillingAccount>): Promise<IBillingAccount | null>;
+  deductBalanceAtomic(
+    userId: string,
+    grantedDeduction: number,
+    paidDeduction: number,
+    cuCost: number,
+  ): Promise<IBillingAccount | null>;
   logUsage(log: Partial<IUsageLog>): Promise<void>;
   listAllWithUsers(): Promise<
     Array<{

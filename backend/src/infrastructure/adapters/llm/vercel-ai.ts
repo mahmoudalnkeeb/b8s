@@ -1,6 +1,15 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createOllama } from 'ollama-ai-provider';
-import { generateText, streamText, LanguageModel, ToolSet, tool } from 'ai';
+import {
+  generateText,
+  streamText,
+  LanguageModel,
+  ToolSet,
+  dynamicTool,
+  ProviderMetadata,
+  ModelMessage,
+} from 'ai';
+import { JSONSchema7 } from 'json-schema';
 import { z } from 'zod';
 import { ILLMProvider } from '../../../domain/ports/llm-provider';
 import { IMessage, IToolDefinition, IToolCall, MessageRole } from '../../../domain/models';
@@ -11,16 +20,91 @@ import { PromptCache } from '../../utils/prompt-cache';
 import { applyMessageWindow } from '../../utils/message-window';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 
+interface JsonSchemaNode {
+  type?: string | undefined;
+  properties?: Record<string, JsonSchemaNode> | undefined;
+  items?: JsonSchemaNode | undefined;
+  required?: string[] | undefined;
+  description?: string | undefined;
+  [key: string]: unknown;
+}
+
+interface DeepSeekToolPayload {
+  type: string;
+  function: {
+    name: string;
+    description: string;
+    parameters: JsonSchemaNode | undefined;
+  };
+}
+
+interface QuotaErrorLike {
+  statusCode?: number;
+  message?: string;
+  lastError?: { statusCode?: number };
+  reason?: string;
+  errors?: Array<{ statusCode?: number; message?: string }>;
+}
+
+interface MappedToolResultContent {
+  type: 'tool-result';
+  toolCallId: string;
+  toolName: string;
+  output: { type: 'json'; value: unknown };
+}
+
+interface MappedToolCallContent {
+  type: 'tool-call';
+  toolCallId: string;
+  toolName: string;
+  input: Record<string, unknown>;
+  providerOptions?: { google?: { thoughtSignature?: string } };
+}
+
+interface MappedTextContent {
+  type: 'text';
+  text: string;
+  providerOptions?: { google?: { thoughtSignature?: string } };
+}
+
+type MappedAssistantContent = MappedTextContent | MappedToolCallContent;
+
+interface MappedUserMessage {
+  role: 'user';
+  content: string;
+}
+
+interface MappedAssistantMessage {
+  role: 'assistant';
+  content: MappedAssistantContent[];
+  providerOptions?: { google?: { thoughtSignature?: string } };
+}
+
+interface MappedToolMessage {
+  role: 'tool';
+  content: MappedToolResultContent[];
+  providerOptions?: { google?: { thoughtSignature?: string } };
+}
+
+type MappedMessage = MappedUserMessage | MappedAssistantMessage | MappedToolMessage;
+
+interface GenerateResponse {
+  content: string;
+  toolCalls?: IToolCall[];
+  thoughtSignature?: string;
+  usage?: { promptTokens: number; completionTokens: number };
+}
+
 /**
  * Recursively walks a JSON Schema object and ensures every object-typed
  * node has an explicit `type: "object"`. The @ai-sdk/deepseek serializer
  * sometimes drops or nullifies the `type` field, causing DeepSeek to reject
  * requests with: "schema must be a JSON Schema of 'type: "object"', got 'type: null'"
  */
-function sanitizeToolSchema(schema: any): any {
+function sanitizeToolSchema(schema: JsonSchemaNode | undefined): JsonSchemaNode | undefined {
   if (!schema || typeof schema !== 'object') return schema;
 
-  const fixed: any = { ...schema };
+  const fixed: JsonSchemaNode = { ...schema };
 
   // If type is missing, null, or not a string, default to 'object'
   if (!fixed.type || typeof fixed.type !== 'string') {
@@ -29,9 +113,12 @@ function sanitizeToolSchema(schema: any): any {
 
   // Recursively fix nested properties
   if (fixed.properties && typeof fixed.properties === 'object') {
-    fixed.properties = Object.fromEntries(
-      Object.entries(fixed.properties).map(([key, val]) => [key, sanitizeToolSchema(val)]),
-    );
+    const props: Record<string, JsonSchemaNode> = {};
+    for (const [key, val] of Object.entries(fixed.properties)) {
+      const sanitized = sanitizeToolSchema(val);
+      if (sanitized) props[key] = sanitized;
+    }
+    fixed.properties = props;
   }
 
   // Recursively fix array items
@@ -52,16 +139,17 @@ function createSanitizingFetch(baseFetch: typeof fetch = globalThis.fetch): type
   return async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
     if (init?.body && typeof init.body === 'string') {
       try {
-        const body = JSON.parse(init.body);
+        const body: { tools?: DeepSeekToolPayload[] } = JSON.parse(init.body);
 
         if (Array.isArray(body.tools)) {
           let modified = false;
 
-          body.tools = body.tools.map((t: any) => {
+          body.tools = body.tools.map((t) => {
             // DeepSeek uses { type: 'function', function: { name, description, parameters } }
             if (t?.function?.parameters) {
               const original = JSON.stringify(t.function.parameters);
-              t.function.parameters = sanitizeToolSchema(t.function.parameters);
+              const sanitized = sanitizeToolSchema(t.function.parameters);
+              t.function.parameters = sanitized ?? t.function.parameters;
               if (JSON.stringify(t.function.parameters) !== original) modified = true;
             }
             return t;
@@ -81,6 +169,33 @@ function createSanitizingFetch(baseFetch: typeof fetch = globalThis.fetch): type
   };
 }
 
+function getProviderThoughtSignature(metadata: ProviderMetadata | undefined): string | undefined {
+  if (!metadata) return undefined;
+  const google = metadata['google'] as { thoughtSignature?: string } | undefined;
+  return google?.thoughtSignature;
+}
+
+function isQuotaError(error: unknown): boolean {
+  const err = error as QuotaErrorLike;
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorString = errorMessage + ' ' + JSON.stringify(error);
+
+  return (
+    err.statusCode === 429 ||
+    errorString.includes('Quota exceeded') ||
+    errorString.includes('RESOURCE_EXHAUSTED') ||
+    err.lastError?.statusCode === 429 ||
+    err.reason === 'maxRetriesExceeded' ||
+    (err.errors !== undefined &&
+      err.errors.some(
+        (e) =>
+          e.statusCode === 429 ||
+          e.message?.includes('Quota exceeded') ||
+          e.message?.includes('RESOURCE_EXHAUSTED'),
+      ))
+  );
+}
+
 export class VercelAiAdapter implements ILLMProvider {
   private tools: IToolDefinition[] = [];
   private provider: LanguageModel;
@@ -90,11 +205,7 @@ export class VercelAiAdapter implements ILLMProvider {
    * Caches full LLM responses for identical prompts (non-streaming only).
    * TTL: 5 minutes (matches DeepSeek's server-side cache window).
    */
-  private static promptCache = new PromptCache<{
-    content: string;
-    toolCalls?: IToolCall[];
-    thoughtSignature?: string;
-  }>(200, 5 * 60 * 1000);
+  private static promptCache = new PromptCache<GenerateResponse>(200, 5 * 60 * 1000);
 
   private static requestCount = 0;
   private static readonly STATS_LOG_INTERVAL = 50; // Log cache stats every 50 requests
@@ -137,26 +248,35 @@ export class VercelAiAdapter implements ILLMProvider {
     this.tools = tools;
   }
 
-  private mapMessages(messages: IMessage[]): any[] {
+  private mapMessages(messages: IMessage[]): ModelMessage[] {
     return messages
       .filter((m) => m.role !== MessageRole.SYSTEM)
-      .map((m) => {
-        const thoughtSignature = m.metadata?.['thoughtSignature'] as string | undefined;
+      .map((m): MappedMessage | null => {
+        const thoughtSignature =
+          typeof m.metadata?.['thoughtSignature'] === 'string'
+            ? (m.metadata['thoughtSignature'] as string)
+            : undefined;
         const providerOptions = thoughtSignature ? { google: { thoughtSignature } } : undefined;
 
         // --- Tool Result Message ---
         if (m.role === MessageRole.TOOL) {
-          let resultData = m.content;
+          let resultData: unknown = m.content;
           try {
             resultData = JSON.parse(m.content);
           } catch {
             // Keep as string if not JSON
           }
 
-          const toolCallId = (m.metadata?.['toolCallId'] as string) || 'unknown';
-          const toolName = (m.metadata?.['toolName'] as string) || 'unknown';
+          const toolCallId =
+            typeof m.metadata?.['toolCallId'] === 'string'
+              ? (m.metadata['toolCallId'] as string)
+              : 'unknown';
+          const toolName =
+            typeof m.metadata?.['toolName'] === 'string'
+              ? (m.metadata['toolName'] as string)
+              : 'unknown';
 
-          return {
+          const toolMsg: MappedToolMessage = {
             role: 'tool',
             content: [
               {
@@ -166,8 +286,9 @@ export class VercelAiAdapter implements ILLMProvider {
                 output: { type: 'json', value: resultData },
               },
             ],
-            providerOptions,
           };
+          if (providerOptions) toolMsg.providerOptions = providerOptions;
+          return toolMsg;
         }
 
         // --- Assistant Message ---
@@ -179,8 +300,8 @@ export class VercelAiAdapter implements ILLMProvider {
             return null;
           }
 
-          if (hasToolCalls) {
-            const content: any[] = [];
+          if (hasToolCalls && m.toolCalls) {
+            const content: MappedAssistantContent[] = [];
 
             content.push({
               type: 'text',
@@ -188,38 +309,41 @@ export class VercelAiAdapter implements ILLMProvider {
             });
 
             content.push(
-              ...m.toolCalls!.map((tc) => {
+              ...m.toolCalls.map((tc): MappedToolCallContent => {
                 const tcThoughtSignature = tc.thoughtSignature || thoughtSignature;
-                return {
+                const tcContent: MappedToolCallContent = {
                   type: 'tool-call',
                   toolCallId: tc.id || 'unknown',
                   toolName: tc.name || 'unknown',
                   input: tc.arguments || {},
-                  providerOptions: tcThoughtSignature
-                    ? { google: { thoughtSignature: tcThoughtSignature } }
-                    : undefined,
                 };
+                if (tcThoughtSignature) {
+                  tcContent.providerOptions = { google: { thoughtSignature: tcThoughtSignature } };
+                }
+                return tcContent;
               }),
             );
 
-            return {
+            const assistantMsg: MappedAssistantMessage = {
               role: 'assistant',
               content,
-              providerOptions,
             };
+            if (providerOptions) assistantMsg.providerOptions = providerOptions;
+            return assistantMsg;
           }
 
-          return {
-            role: 'assistant',
-            content: [
-              {
-                type: 'text',
-                text: m.content || ' ',
-                providerOptions,
-              },
-            ],
-            providerOptions,
+          const textContent: MappedTextContent = {
+            type: 'text',
+            text: m.content || ' ',
           };
+          if (providerOptions) textContent.providerOptions = providerOptions;
+
+          const assistantMsg: MappedAssistantMessage = {
+            role: 'assistant',
+            content: [textContent],
+          };
+          if (providerOptions) assistantMsg.providerOptions = providerOptions;
+          return assistantMsg;
         }
 
         // --- User Message ---
@@ -232,15 +356,17 @@ export class VercelAiAdapter implements ILLMProvider {
 
         return null;
       })
-      .filter(Boolean);
+      .filter((m): m is MappedMessage => m !== null) as ModelMessage[];
   }
 
-  private mapJsonSchemaToZod(schema: any): z.ZodObject<any> {
-    const properties = schema?.properties || {};
-    const required = schema?.required || [];
+  private mapJsonSchemaToZod(
+    schema: JSONSchema7 | undefined,
+  ): z.ZodObject<Record<string, z.ZodTypeAny>> {
+    const properties = (schema?.properties ?? {}) as Record<string, JSONSchema7>;
+    const required: string[] = (schema?.required as string[]) ?? [];
     const shape: Record<string, z.ZodTypeAny> = {};
 
-    for (const [key, value] of Object.entries(properties) as [string, any][]) {
+    for (const [key, value] of Object.entries(properties)) {
       let zodType: z.ZodTypeAny;
 
       switch (value.type) {
@@ -288,27 +414,27 @@ export class VercelAiAdapter implements ILLMProvider {
 
   private mapTools(toolsOverride?: IToolDefinition[]): ToolSet {
     const toolsToMap = this.sortTools(toolsOverride || this.tools);
-    const tools: ToolSet = {};
+    const toolSet: ToolSet = {};
     for (const t of toolsToMap) {
-      const zodSchema = this.mapJsonSchemaToZod(t.apiSchema);
+      const zodSchema = this.mapJsonSchemaToZod(t.apiSchema as JSONSchema7 | undefined);
 
-      tools[t.name] = tool({
+      toolSet[t.name] = dynamicTool({
         description: t.description,
-        parameters: zodSchema,
-        execute: async (args: any) => {
+        inputSchema: zodSchema,
+        execute: async (args: unknown) => {
           // Execution is handled manually in AgentOrchestratorService.
           return args;
         },
-      } as any);
+      });
     }
-    return tools;
+    return toolSet;
   }
 
   private logCacheStats(): void {
     VercelAiAdapter.requestCount++;
     if (VercelAiAdapter.requestCount % VercelAiAdapter.STATS_LOG_INTERVAL === 0) {
       const stats = VercelAiAdapter.promptCache.getStats();
-      logger.info('📊 Prompt cache stats', {
+      logger.info('Prompt cache stats', {
         cacheSize: stats.size,
         hitRate: stats.hitRate,
         hits: stats.hits,
@@ -323,12 +449,7 @@ export class VercelAiAdapter implements ILLMProvider {
     messages: IMessage[],
     tools?: IToolDefinition[],
     systemInstruction?: string,
-  ): Promise<{
-    content: string;
-    toolCalls?: IToolCall[];
-    thoughtSignature?: string;
-    usage?: { promptTokens: number; completionTokens: number };
-  }> {
+  ): Promise<GenerateResponse> {
     // Apply message windowing to reduce tokens
     const windowedMessages = applyMessageWindow(messages);
 
@@ -347,34 +468,38 @@ export class VercelAiAdapter implements ILLMProvider {
     }
 
     try {
+      const mappedMessages = this.mapMessages(windowedMessages);
       const result = await generateText({
         model: this.provider,
-        messages: this.mapMessages(windowedMessages),
+        messages: mappedMessages,
         tools: this.mapTools(tools),
         ...(systemInstruction ? { system: systemInstruction } : {}),
       });
 
       let thoughtSignature: string | undefined;
       for (const part of result.content) {
-        const ts = (part as any).providerMetadata?.google?.thoughtSignature;
-        if (ts) {
-          thoughtSignature = ts;
-          break;
+        if (part.type === 'text' || part.type === 'tool-call' || part.type === 'tool-result') {
+          const ts = getProviderThoughtSignature(part.providerMetadata);
+          if (ts) {
+            thoughtSignature = ts;
+            break;
+          }
         }
       }
 
-      const response = {
+      const response: GenerateResponse = {
         content: result.text,
         toolCalls: result.toolCalls?.map((tc) => {
           const tcPart = result.content.find(
-            (p) => p.type === 'tool-call' && p.toolCallId === tc.toolCallId,
+            (p): p is (typeof result.content)[number] & { type: 'tool-call' } =>
+              p.type === 'tool-call' && p.toolCallId === tc.toolCallId,
           );
-          const tcTs = (tcPart as any)?.providerMetadata?.google?.thoughtSignature;
+          const tcTs = tcPart ? getProviderThoughtSignature(tcPart.providerMetadata) : undefined;
 
           return {
             id: tc.toolCallId,
             name: tc.toolName,
-            arguments: (tc as any).args as Record<string, unknown>,
+            arguments: tc.input as Record<string, unknown>,
             ...(tcTs || thoughtSignature ? { thoughtSignature: tcTs || thoughtSignature } : {}),
           };
         }),
@@ -382,8 +507,8 @@ export class VercelAiAdapter implements ILLMProvider {
         ...(result.usage
           ? {
               usage: {
-                promptTokens: (result.usage as any).promptTokens || 0,
-                completionTokens: (result.usage as any).completionTokens || 0,
+                promptTokens: result.usage.inputTokens || 0,
+                completionTokens: result.usage.outputTokens || 0,
               },
             }
           : {}),
@@ -397,25 +522,8 @@ export class VercelAiAdapter implements ILLMProvider {
 
       this.logCacheStats();
       return response;
-    } catch (error: any) {
-      const errorString = error.message + ' ' + JSON.stringify(error);
-      const isQuotaError =
-        error.statusCode === 429 ||
-        errorString.includes('Quota exceeded') ||
-        errorString.includes('RESOURCE_EXHAUSTED') ||
-        error.lastError?.statusCode === 429 ||
-        error.reason === 'maxRetriesExceeded' ||
-        (error.errors &&
-          error.errors.some(
-            (e: any) =>
-              e.statusCode === 429 ||
-              e.message?.includes('Quota exceeded') ||
-              e.message?.includes('RESOURCE_EXHAUSTED'),
-          ));
-
-      if (isQuotaError) {
-        throw new QuotaExceededError();
-      }
+    } catch (error: unknown) {
+      if (isQuotaError(error)) throw new QuotaExceededError();
       const message = error instanceof Error ? error.message : String(error);
       throw new LLMProviderError(message, 'LLM_GENERATE_ERROR');
     }
@@ -425,33 +533,26 @@ export class VercelAiAdapter implements ILLMProvider {
     messages: IMessage[],
     tools?: IToolDefinition[],
     systemInstruction?: string,
-  ): AsyncGenerator<
-    {
-      content: string;
-      toolCalls?: IToolCall[];
-      thoughtSignature?: string;
-      usage?: { promptTokens: number; completionTokens: number };
-    },
-    void,
-    unknown
-  > {
+  ): AsyncGenerator<GenerateResponse, void, unknown> {
     // Apply message windowing to reduce tokens
     const windowedMessages = applyMessageWindow(messages);
 
     this.logCacheStats();
 
     try {
+      const mappedMessages = this.mapMessages(windowedMessages);
       const result = await streamText({
         model: this.provider,
-        messages: this.mapMessages(windowedMessages),
+        messages: mappedMessages,
         tools: this.mapTools(tools),
         ...(systemInstruction ? { system: systemInstruction } : {}),
       });
 
       for await (const part of result.fullStream) {
         const thoughtSignature =
-          (part as any).providerMetadata?.google?.thoughtSignature ||
-          (part as any).thoughtSignature;
+          'providerMetadata' in part
+            ? getProviderThoughtSignature(part.providerMetadata)
+            : undefined;
 
         if (thoughtSignature) {
           yield { content: '', thoughtSignature };
@@ -460,57 +561,46 @@ export class VercelAiAdapter implements ILLMProvider {
         if (part.type === 'text-delta' && part.text) {
           yield { content: part.text };
         } else if (part.type === 'tool-call') {
-          const toolPart = part as any;
           const tcThoughtSignature =
-            toolPart.providerMetadata?.google?.thoughtSignature || thoughtSignature;
+            getProviderThoughtSignature(part.providerMetadata) || thoughtSignature;
 
           yield {
             content: '',
             toolCalls: [
               {
-                id: toolPart.toolCallId,
-                name: toolPart.toolName,
-                arguments: toolPart.args || {},
-                thoughtSignature: tcThoughtSignature,
+                id: part.toolCallId,
+                name: part.toolName,
+                arguments: part.input as Record<string, unknown>,
+                ...(tcThoughtSignature ? { thoughtSignature: tcThoughtSignature } : {}),
               },
             ],
           };
-        } else if (part.type === 'finish' && (part as any).totalUsage) {
-          const usage = (part as any).totalUsage || (part as any).usage;
+        } else if (part.type === 'finish') {
+          const usage = part.totalUsage;
           yield {
             content: '',
             ...(usage
               ? {
                   usage: {
-                    promptTokens: usage.promptTokens || 0,
-                    completionTokens: usage.completionTokens || 0,
+                    promptTokens: usage.inputTokens || 0,
+                    completionTokens: usage.outputTokens || 0,
                   },
                 }
               : {}),
           };
         }
       }
-    } catch (error: any) {
-      const errorString = error.message + ' ' + JSON.stringify(error);
-      const isQuotaError =
-        error.statusCode === 429 ||
-        errorString.includes('Quota exceeded') ||
-        errorString.includes('RESOURCE_EXHAUSTED') ||
-        error.lastError?.statusCode === 429 ||
-        error.reason === 'maxRetriesExceeded' ||
-        (error.errors &&
-          error.errors.some(
-            (e: any) =>
-              e.statusCode === 429 ||
-              e.message?.includes('Quota exceeded') ||
-              e.message?.includes('RESOURCE_EXHAUSTED'),
-          ));
-
-      if (isQuotaError) {
-        throw new QuotaExceededError();
-      }
+    } catch (error: unknown) {
+      if (isQuotaError(error)) throw new QuotaExceededError();
       const message = error instanceof Error ? error.message : String(error);
       throw new LLMProviderError(message, 'LLM_STREAM_ERROR');
     }
+  }
+
+  /**
+   * Clean up resources (prompt cache interval, etc.)
+   */
+  destroy(): void {
+    VercelAiAdapter.promptCache.destroy();
   }
 }
