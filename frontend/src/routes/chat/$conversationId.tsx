@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router';
 import { useConversation } from '../../api/conversations';
 import { useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Send, Bot, ArrowLeft, Loader2 } from 'lucide-react';
 import { MessageBubble } from '@/components/ui/message-bubble';
 import { useChatStream } from '@/hooks/use-chat-stream';
@@ -16,10 +16,30 @@ function Chat() {
   const { data: conversation, refetch, isLoading: isConvLoading } = useConversation(conversationId);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const { messages, setMessages, input, setInput, isStreaming, isWaiting, handleSend } = useChatStream({
-    conversationId,
-    onRefetch: refetch,
-  });
+  const { messages, setMessages, input, setInput, isStreaming, isWaiting, handleSend } =
+    useChatStream({
+      conversationId,
+      onRefetch: refetch,
+    });
+
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 240)}px`;
+    }
+  }, [input]);
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (!isStreaming && input.trim()) {
+        const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+        handleSend(fakeEvent);
+      }
+    }
+  };
 
   useEffect(() => {
     if (conversation) {
@@ -38,7 +58,12 @@ function Chat() {
     <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
       <div className="p-4 flex items-center justify-between border-b border-white/10 bg-black/50 sticky top-0 z-10 backdrop-blur-md">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild className="lg:hidden text-white/50 hover:text-white hover:bg-white/5 rounded-none border border-transparent">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="lg:hidden text-white/50 hover:text-white hover:bg-white/5 rounded-none border border-transparent"
+          >
             <Link to="/conversations/my">
               <ArrowLeft className="h-4 w-4" />
             </Link>
@@ -47,7 +72,9 @@ function Chat() {
             <Bot className="h-5 w-5 text-[#3D81CC]" />
           </div>
           <div>
-            <h3 className="font-sans font-black text-sm text-white uppercase tracking-tight">{conversation?.agentName || 'Agent Chat'}</h3>
+            <h3 className="font-sans font-black text-sm text-white uppercase tracking-tight">
+              {conversation?.agentName || 'Agent Chat'}
+            </h3>
             <p className="font-mono text-[9px] text-white/40 uppercase tracking-widest">
               {conversationId.slice(0, 8)}
             </p>
@@ -79,17 +106,20 @@ function Chat() {
 
       <div className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 sticky bottom-0">
         <form onSubmit={handleSend} className="relative max-w-4xl mx-auto w-full group">
-          <Input
+          <Textarea
+            ref={textareaRef}
             value={input}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setInput(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="TYPE A MESSAGE..."
-            className="h-14 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 uppercase tracking-widest"
+            className="min-h-[56px] py-4 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto"
             disabled={isStreaming}
+            rows={1}
           />
           <button
             type="submit"
             disabled={isStreaming || !input.trim()}
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
+            className="absolute right-2 bottom-2 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
             aria-label="Send message"
           >
             {isStreaming ? (
