@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable react-hooks/set-state-in-effect */
 import { createFileRoute, Link } from '@tanstack/react-router';
 import {
   useAgent,
@@ -20,19 +22,9 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select } from '@/components/ui/select';
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from '@/components/ui/card';
-import {
   ArrowLeft,
-  Rocket,
   Upload,
   Brain,
-  Save,
   Shield,
   Settings2,
   Pin,
@@ -80,7 +72,6 @@ function AgentDetail() {
   const { data: specificJobStatus } = useJobStatus(agentId, activeJobId || '');
   const { data: latestJobStatus } = useLatestJobStatus(agentId);
 
-  // Use the explicitly active job status if there is one, otherwise fallback to the latest known job
   const jobStatus = activeJobId ? specificJobStatus : latestJobStatus;
 
   const [name, setName] = useState('');
@@ -205,20 +196,27 @@ function AgentDetail() {
 
   return (
     <div className="space-y-8 pb-20">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" asChild>
-          <Link to="/agents">
-            <ArrowLeft className="h-5 w-5" />
-          </Link>
-        </Button>
-        <div className="flex-1 min-w-0">
-          <Input
-            value={name}
-            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-            className="text-3xl font-bold tracking-tight bg-transparent border-none p-0 h-auto focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:opacity-50"
-            placeholder="Agent Name"
-          />
-          <p className="text-muted-foreground font-mono text-[10px] mt-1">ID: {agent.agentId}</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            asChild
+            className="shrink-0 h-10 w-10 text-white/40 hover:text-white rounded-none hidden md:flex"
+          >
+            <Link to="/agents">
+              <ArrowLeft className="h-5 w-5" />
+            </Link>
+          </Button>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-[#3D81CC] mb-2">
+              <div className="h-px w-8 bg-[#3D81CC]"></div>
+              <span>Edit Agent</span>
+            </div>
+            <h2 className="font-sans font-black text-2xl text-white uppercase tracking-tight">
+              {name || 'Agent Setup'}
+            </h2>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -226,9 +224,10 @@ function AgentDetail() {
             size="icon"
             onClick={handleTogglePin}
             className={cn(
+              'h-10 w-10 shrink-0 rounded-none transition-colors border',
               agentWithPin.isPinned
-                ? 'text-blue-400 border-blue-400/30 bg-blue-400/5'
-                : 'text-muted-foreground',
+                ? 'text-[#3D81CC] border-[#3D81CC]/30 bg-[#3D81CC]/10'
+                : 'text-white/40 border-white/10 hover:text-white hover:bg-white/5',
             )}
           >
             {agentWithPin.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
@@ -236,41 +235,68 @@ function AgentDetail() {
           <Button
             onClick={handleDeploy}
             disabled={agent.deployed || deployAgent.isPending}
-            variant={agent.deployed ? 'secondary' : 'default'}
-            className={!agent.deployed ? 'bg-green-600 hover:bg-green-700 text-white' : ''}
-          >
-            {agent.deployed ? (
-              <>
-                <Rocket className="mr-2 h-4 w-4" /> Deployed
-              </>
-            ) : (
-              <>
-                <Rocket className="mr-2 h-4 w-4" /> Deploy Agent
-              </>
+            className={cn(
+              'h-10 rounded-none font-mono uppercase tracking-widest text-[10px] px-6 transition-colors',
+              !agent.deployed
+                ? 'bg-[#3D81CC] hover:bg-[#3D81CC]/90 text-white'
+                : 'bg-white/10 text-white/40 cursor-not-allowed hidden',
             )}
+          >
+            {deployAgent.isPending ? 'Deploying...' : agent.deployed ? 'Deployed' : 'Deploy Agent'}
+          </Button>
+          <Button
+            onClick={handleUpdate}
+            disabled={updateAgent.isPending}
+            className="h-10 rounded-none bg-white font-mono uppercase tracking-widest text-[10px] text-black hover:bg-white/90 px-6 shrink-0"
+          >
+            {updateAgent.isPending ? 'Saving...' : 'Save Changes'}
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <Card className="border-border/40 bg-secondary/5 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl shadow-black/80">
-            <CardHeader className="p-8 border-b border-border/20 bg-secondary/10">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-blue-500/10 rounded-2xl">
-                  <Brain className="h-6 w-6 text-blue-400" />
+          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center gap-3">
+              <Brain className="h-5 w-5 text-[#3D81CC]" />
+              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
+                Configuration
+              </h3>
+            </div>
+
+            <div className="p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-3">
+                  <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                    Name
+                  </label>
+                  <Input
+                    value={name}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
+                    placeholder="e.g. Senior Researcher"
+                  />
+                  <p className="font-mono text-[9px] text-white/20 uppercase tracking-widest">
+                    ID: {agent.agentId}
+                  </p>
                 </div>
-                <div>
-                  <CardTitle className="text-2xl font-headline font-bold text-white">
-                    System Instructions
-                  </CardTitle>
-                  <CardDescription>Configure how your agent thinks and responds</CardDescription>
+                <div className="space-y-3">
+                  <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                    Visibility
+                  </label>
+                  <Select
+                    value={visibility}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setVisibility(e.target.value)
+                    }
+                  >
+                    <option value="private">Private (Workspace Only)</option>
+                    <option value="public">Public (Community)</option>
+                  </Select>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
+
+              <div className="space-y-3">
+                <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
                   Description
                 </label>
                 <Input
@@ -278,77 +304,118 @@ function AgentDetail() {
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                     setDescription(e.target.value)
                   }
-                  placeholder="What does this agent do?"
-                  className="h-12 bg-background/50 border-border/40 text-base rounded-xl focus-visible:ring-blue-500/50"
+                  placeholder="What is the primary goal of this agent?"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground ml-1">
-                  Instructions
+
+              <div className="space-y-3">
+                <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  System Instructions
                 </label>
                 <Textarea
                   value={instructions}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                     setInstructions(e.target.value)
                   }
-                  className="bg-background/50 border-border/40 font-mono text-sm p-4 rounded-xl leading-relaxed focus-visible:ring-blue-500/50 min-h-[300px]"
-                  placeholder="You are a helpful assistant that..."
+                  className="min-h-[300px]"
+                  placeholder="Think step by step. You are an expert in..."
                 />
               </div>
-            </CardContent>
-            <CardFooter className="justify-end border-t border-border/20 p-8 bg-secondary/5">
-              <Button
-                onClick={handleUpdate}
-                disabled={updateAgent.isPending}
-                className="bg-white text-black hover:bg-white/90 font-bold px-8 h-11 rounded-xl shadow-xl transition-all border-none"
-              >
-                <Save className="mr-2 h-4 w-4" />
-                {updateAgent.isPending ? 'Saving...' : 'Save All Changes'}
-              </Button>
-            </CardFooter>
-          </Card>
+
+              <div className="space-y-4 pt-4 border-t border-white/10">
+                <div className="space-y-1 mb-4">
+                  <label className="font-mono text-xs text-white tracking-widest uppercase flex items-center gap-2">
+                    <Wrench className="h-4 w-4 text-[#3D81CC]" /> Custom Tools
+                  </label>
+                  <p className="font-mono text-[9px] text-white/30 tracking-widest uppercase">
+                    External tools this agent can invoke.
+                  </p>
+                </div>
+
+                {!Array.isArray(allTools) || allTools.length === 0 ? (
+                  <div className="p-6 border border-dashed border-white/10 bg-[#111] text-center">
+                    <p className="font-mono text-xs text-white/30">No custom tools defined.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10">
+                    {allTools.map((tool: any, index: number) => {
+                      const isChecked = selectedToolIds.includes(tool.toolId);
+                      const elementId = `tool-${tool.toolId || index}`;
+                      return (
+                        <label
+                          key={tool.toolId || index}
+                          htmlFor={elementId}
+                          className={cn(
+                            'p-4 transition-all cursor-pointer flex items-start gap-3',
+                            isChecked ? 'bg-[#3D81CC]/10' : 'bg-[#0a0a0a] hover:bg-[#111]',
+                          )}
+                        >
+                          <Checkbox
+                            id={elementId}
+                            checked={isChecked}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedToolIds([...selectedToolIds, tool.toolId]);
+                              } else {
+                                setSelectedToolIds(
+                                  selectedToolIds.filter((id) => id !== tool.toolId),
+                                );
+                              }
+                            }}
+                            className="mt-1"
+                          />
+                          <div className="space-y-1 min-w-0">
+                            <p className="font-mono text-xs text-white truncate">{tool.name}</p>
+                            <p className="font-mono text-[9px] text-white/30 truncate">
+                              {tool.description}
+                            </p>
+                            <span className="font-mono text-[8px] uppercase px-1.5 py-0.5 bg-white/5 text-white/40 tracking-widest inline-block mt-1">
+                              {tool.method}
+                            </span>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="space-y-8">
-          <Card className="border-border/40 bg-secondary/5 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl shadow-black/80">
-            <CardHeader className="p-6 border-b border-border/20 bg-secondary/10">
-              <CardTitle className="flex items-center gap-3 text-lg font-headline font-bold text-white">
-                <Shield className="h-5 w-5 text-orange-400" />
-                Permissions & Features
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-2">
-                <label className="text-xs font-bold uppercase text-muted-foreground">
-                  Visibility
-                </label>
-                <Select
-                  value={visibility}
-                  onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                    setVisibility(e.target.value)
-                  }
-                  className="bg-background/50"
-                >
-                  <option value="private">Private (Only me)</option>
-                  <option value="public">Public (Discover)</option>
-                </Select>
-              </div>
-
-              <div className="space-y-4 pt-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="mem-toggle" className="text-sm font-medium">
-                    Long-term Memory
-                  </label>
+          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center gap-3">
+              <Shield className="h-5 w-5 text-[#3D81CC]" />
+              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
+                Features & Storage
+              </h3>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="flex flex-col gap-4">
+                <div className="flex items-center space-x-3 cursor-pointer p-4 border border-white/10 bg-[#111]">
                   <Checkbox
-                    id="mem-toggle"
+                    id="memory"
                     checked={memoryEnabled}
                     onCheckedChange={(checked) => setMemoryEnabled(!!checked)}
                   />
+                  <div className="space-y-0.5 w-full">
+                    <label
+                      htmlFor="memory"
+                      className="font-mono text-xs text-white cursor-pointer block"
+                    >
+                      B8s Memory
+                    </label>
+                    <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                      Store and recall facts
+                    </p>
+                  </div>
                 </div>
+
                 {memoryEnabled && (
-                  <div className="space-y-4 p-4 bg-background/30 rounded-xl border border-border/20 animate-in fade-in slide-in-from-top-2">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                  <div className="space-y-6 p-4 border border-white/10 bg-[#111] animate-in fade-in">
+                    <div className="space-y-3">
+                      <label className="font-mono text-[9px] text-white/30 tracking-widest uppercase flex items-center gap-2">
                         <Eye className="h-3 w-3" /> Read Access
                       </label>
                       <Select
@@ -356,15 +423,14 @@ function AgentDetail() {
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                           setMemoryReadAccess(e.target.value)
                         }
-                        className="h-9 text-xs bg-background/50"
                       >
                         <option value="private">Private (Owner only)</option>
                         <option value="public">Public (Shared)</option>
                         <option value="created_only">Created Only</option>
                       </Select>
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-bold uppercase text-muted-foreground flex items-center gap-2">
+                    <div className="space-y-3">
+                      <label className="font-mono text-[9px] text-white/30 tracking-widest uppercase flex items-center gap-2">
                         <PenTool className="h-3 w-3" /> Write Access
                       </label>
                       <Select
@@ -372,7 +438,6 @@ function AgentDetail() {
                         onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
                           setMemoryWriteAccess(e.target.value)
                         }
-                        className="h-9 text-xs bg-background/50"
                       >
                         <option value="private">Private (Owner only)</option>
                         <option value="public">Public (Anyone)</option>
@@ -380,183 +445,160 @@ function AgentDetail() {
                     </div>
                   </div>
                 )}
-                <div className="flex items-center justify-between">
-                  <label htmlFor="rag-toggle" className="text-sm font-medium">
-                    Knowledge Base (RAG)
-                  </label>
+
+                <div className="flex items-center space-x-3 cursor-pointer p-4 border border-white/10 bg-[#111]">
                   <Checkbox
-                    id="rag-toggle"
+                    id="rag"
                     checked={ragEnabled}
                     onCheckedChange={(checked) => setRagEnabled(!!checked)}
                   />
-                </div>
-              </div>
-
-              <div className="space-y-4 pt-4 border-t border-border/20">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-                  <Wrench className="h-3 w-3 text-blue-400" /> Custom Tools
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  {(Array.isArray(allTools) ? allTools : []).map((tool: any) => (
-                    <div
-                      key={tool.toolId}
-                      className="flex items-center justify-between p-2 rounded-lg bg-background/40 border border-border/30 hover:border-blue-400/30 transition-colors"
+                  <div className="space-y-0.5 w-full">
+                    <label
+                      htmlFor="rag"
+                      className="font-mono text-xs text-white cursor-pointer block"
                     >
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-[10px] font-bold truncate">{tool.name}</span>
-                        <span className="text-[9px] text-muted-foreground truncate">
-                          {tool.description}
-                        </span>
-                      </div>
-                      <Checkbox
-                        checked={selectedToolIds.includes(tool.toolId)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedToolIds([...selectedToolIds, tool.toolId]);
-                          } else {
-                            setSelectedToolIds(selectedToolIds.filter((id) => id !== tool.toolId));
-                          }
-                        }}
-                      />
-                    </div>
-                  ))}
-                  {(!Array.isArray(allTools) || allTools.length === 0) && (
-                    <p className="text-[9px] text-muted-foreground italic text-center py-2">
-                      No custom tools defined
+                      Knowledge Base
+                    </label>
+                    <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                      Document grounding
                     </p>
-                  )}
+                  </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-border/40 bg-secondary/5 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl shadow-black/80">
-            <CardHeader className="p-6 border-b border-border/20 bg-secondary/10">
-              <CardTitle className="flex items-center gap-3 text-lg font-headline font-bold text-white">
-                <Upload className="h-5 w-5 text-blue-400" />
+          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center gap-3">
+              <Upload className="h-5 w-5 text-[#3D81CC]" />
+              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
                 Knowledge Base
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
+              </h3>
+            </div>
+            <div className="p-6 space-y-6">
               {!jobStatus || jobStatus.status === 'completed' || jobStatus.status === 'failed' ? (
-                <>
-                  <div className="border-2 border-dashed border-border/50 rounded-md p-4 text-center hover:border-blue-400/50 transition-colors">
+                <div className="space-y-4">
+                  <div className="border border-dashed border-white/20 bg-[#111] p-6 text-center hover:border-white/40 transition-colors">
                     <input
                       type="file"
                       id="kb-upload"
                       onChange={(e) => setFile(e.target.files?.[0] || null)}
                       className="hidden"
                     />
-                    <label htmlFor="kb-upload" className="cursor-pointer space-y-2">
-                      <div className="bg-blue-400/10 p-2 rounded-full w-fit mx-auto">
-                        <Upload className="h-6 w-6 text-blue-400" />
+                    <label htmlFor="kb-upload" className="cursor-pointer space-y-3 block">
+                      <div className="bg-[#3D81CC]/10 p-3 w-fit mx-auto text-[#3D81CC]">
+                        <Upload className="h-5 w-5" />
                       </div>
-                      <p className="text-xs font-medium truncate max-w-[150px] mx-auto">
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/60 truncate mx-auto">
                         {file ? file.name : 'Click to upload'}
                       </p>
                     </label>
                   </div>
                   {jobStatus?.status === 'completed' && (
-                    <div className="flex items-center gap-2 text-[10px] text-green-400 bg-green-400/5 p-2 rounded border border-green-400/20">
+                    <div className="flex items-center gap-2 text-[10px] text-green-400 bg-green-400/5 p-3 border border-green-400/20 font-mono uppercase tracking-widest">
                       <CheckCircle2 className="h-3 w-3" /> Ingestion successful
                     </div>
                   )}
                   {jobStatus?.status === 'failed' && (
-                    <div className="flex items-center gap-2 text-[10px] text-red-400 bg-red-400/5 p-2 rounded border border-red-400/20">
+                    <div className="flex items-center gap-2 text-[10px] text-red-400 bg-red-400/5 p-3 border border-red-400/20 font-mono uppercase tracking-widest">
                       <AlertCircle className="h-3 w-3" /> {jobStatus.error || 'Ingestion failed'}
                     </div>
                   )}
                   <Button
                     onClick={handleUpload}
                     disabled={!file || uploadKb.isPending}
-                    size="sm"
-                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    variant="default"
+                    className="w-full bg-white text-black hover:bg-white/90 rounded-none font-mono uppercase tracking-widest text-[10px] h-10"
                   >
                     {uploadKb.isPending ? 'Starting...' : 'Ingest Document'}
                   </Button>
-                </>
+                </div>
               ) : (
-                <div className="space-y-4 p-4 bg-blue-400/5 border border-blue-400/20 rounded-xl">
+                <div className="space-y-4 p-4 border border-white/10 bg-[#111] animate-in fade-in">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-[10px] font-bold uppercase text-blue-400 flex items-center gap-2">
+                    <span className="font-mono text-[10px] tracking-widest uppercase text-[#3D81CC] flex items-center gap-2">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       {jobStatus.status === 'processing' ? 'Ingesting...' : 'Queued'}
                     </span>
-                    <span className="text-[10px] font-mono text-blue-400">{getProgress()}%</span>
+                    <span className="font-mono text-[10px] text-[#3D81CC]">{getProgress()}%</span>
                   </div>
-                  <div className="h-1.5 w-full bg-blue-400/10 rounded-full overflow-hidden">
+                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-blue-500 transition-all duration-500 ease-out"
+                      className="h-full bg-[#3D81CC] transition-all duration-500 ease-out"
                       style={{ width: `${getProgress()}%` }}
                     />
                   </div>
-                  <p className="text-[9px] text-muted-foreground italic text-center">
+                  <p className="font-mono text-[9px] text-white/40 uppercase tracking-widest text-center mt-2">
                     {jobStatus.processedChunks} of {jobStatus.totalChunks} chunks processed
                   </p>
                 </div>
               )}
 
-              <div className="pt-4 space-y-2">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2 ml-1">
+              <div className="pt-4 border-t border-white/10 space-y-3">
+                <label className="font-mono text-[10px] tracking-widest text-white/40 uppercase block">
                   Active Documents ({kbDocs?.length || 0})
                 </label>
                 <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                   {kbDocs?.map((doc: any) => (
                     <div
                       key={doc.docId}
-                      className="group flex items-center justify-between p-2 rounded-lg bg-background/40 border border-border/30 hover:border-blue-400/30 transition-colors"
+                      className="group flex items-center justify-between p-3 bg-[#111] border border-white/5 hover:border-red-500/30 transition-colors"
                     >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <FileText className="h-3 w-3 text-blue-400 shrink-0" />
-                        <span className="text-[10px] truncate font-medium">{doc.fileName}</span>
+                      <div className="flex items-center gap-3 min-w-0">
+                        <FileText className="h-4 w-4 text-white/40 shrink-0" />
+                        <span className="font-mono text-[10px] text-white/80 truncate">
+                          {doc.fileName}
+                        </span>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
                         onClick={(e) => handleDeleteDoc(e, doc.docId)}
-                        className="h-6 w-6 text-muted-foreground hover:text-red-400 hover:bg-red-400/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="h-6 w-6 text-white/20 hover:text-red-400 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-none"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
                   {(!kbDocs || kbDocs.length === 0) && (
-                    <div className="text-center py-4 border border-dashed border-border/30 rounded-lg">
-                      <p className="text-[9px] text-muted-foreground italic">
+                    <div className="text-center py-6 border border-dashed border-white/10 bg-[#111]">
+                      <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
                         Empty knowledge base
                       </p>
                     </div>
                   )}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
-          <Card className="border-border/40 bg-secondary/5 backdrop-blur-xl rounded-3xl overflow-hidden shadow-2xl shadow-black/80">
-            <CardHeader className="p-6 border-b border-border/20 bg-secondary/10">
-              <CardTitle className="text-lg flex items-center gap-3 font-headline font-bold text-white">
-                <Settings2 className="h-5 w-5 text-gray-400" />
+          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex items-center gap-3">
+              <Settings2 className="h-5 w-5 text-[#3D81CC]" />
+              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
                 Memories
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2">
+              </h3>
+            </div>
+            <div className="p-6">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2">
                 {memories?.items?.map((m: any) => (
                   <div
                     key={m.memoryId}
-                    className="text-[11px] p-2 rounded bg-background/40 border border-border/30 text-muted-foreground leading-relaxed"
+                    className="font-mono text-[10px] p-3 bg-[#111] border border-white/5 text-white/60 leading-relaxed"
                   >
                     {m.text}
                   </div>
                 ))}
                 {(!memories?.items || memories.items.length === 0) && (
-                  <div className="text-center py-4">
-                    <p className="text-[10px] text-muted-foreground italic">No memories yet</p>
+                  <div className="text-center py-6 border border-dashed border-white/10 bg-[#111]">
+                    <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+                      No memories yet
+                    </p>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </div>
     </div>
