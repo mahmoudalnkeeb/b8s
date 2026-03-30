@@ -104,15 +104,15 @@ function Chat() {
         <div ref={scrollRef} className="h-4" />
       </div>
 
-      <div className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 sticky bottom-0">
+      <div className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 sticky bottom-0 z-20">
         <form onSubmit={handleSend} className="relative max-w-4xl mx-auto w-full group">
           <Textarea
             ref={textareaRef}
             value={input}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="TYPE A MESSAGE..."
-            className="min-h-[56px] py-4 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto"
+            placeholder="Ask anything..."
+            className="min-h-[56px] py-4 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto shadow-xl"
             disabled={isStreaming}
             rows={1}
           />
@@ -123,7 +123,7 @@ function Chat() {
             aria-label="Send message"
           >
             {isStreaming ? (
-              <Loader2 className="h-4 w-4 animate-spin text-white flex-shrink-0" />
+              <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
             ) : (
               <Send className="h-4 w-4 flex-shrink-0" />
             )}

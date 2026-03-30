@@ -7,6 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Send, Bot, ArrowLeft, Loader2 } from 'lucide-react';
 import { MessageBubble } from '@/components/ui/message-bubble';
 import { useChatStream } from '@/hooks/use-chat-stream';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export const Route = createFileRoute('/chat/new/$agentId')({
   component: NewChat,
@@ -67,8 +69,8 @@ function NewChat() {
     return <div className="p-8 text-center text-muted-foreground">Loading agent...</div>;
 
   return (
-    <div className="flex flex-col h-full w-full max-w-5xl mx-auto">
-      <div className="p-4 flex items-center justify-between border-b border-white/10 bg-black/50 sticky top-0 z-10 backdrop-blur-md">
+    <div className="flex flex-col h-full w-full max-w-5xl mx-auto relative overflow-hidden">
+      <div className="p-4 flex items-center justify-between border-b border-white/10 bg-black/50 sticky top-0 z-30 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -92,70 +94,113 @@ function NewChat() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-8 space-y-8 scroll-smooth">
-        {messages.length === 0 && (
-          <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-60">
-            <div className="p-6 border border-[#3D81CC]/30 bg-[#3D81CC]/5">
-              <Bot className="h-16 w-16 text-[#3D81CC]" />
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-2xl font-sans font-black text-white uppercase tracking-tight">
-                Start a new conversation
-              </h3>
-              <p className="font-sans text-sm text-white/50 font-light max-w-sm mx-auto">
-                Send your first message to initialize this chat and generate a unique title for your
-                session.
-              </p>
-            </div>
+      <div className={cn("flex-1 px-4 py-8 scroll-smooth flex flex-col relative z-10", messages.length === 0 ? "justify-center overflow-hidden" : "overflow-y-auto space-y-8")}>
+        <AnimatePresence>
+          {messages.length === 0 && (
+            <motion.div
+              key="empty-state"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
+              className="flex flex-col items-center justify-center -mt-24 w-full"
+            >
+              <h2 className="font-sans font-black text-3xl md:text-5xl text-white uppercase tracking-tight mb-8 drop-shadow-sm text-center">
+                WHAT CAN I HELP WITH?
+              </h2>
+              
+              <motion.div layoutId="chat-input-wrapper" className="w-[90%] max-w-3xl relative">
+                <form onSubmit={handleSend} className="relative w-full group">
+                  <Textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Ask anything..."
+                    className="min-h-[64px] py-5 pl-5 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-base text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto shadow-xl"
+                    disabled={isStreaming}
+                    rows={1}
+                  />
+                  <button
+                    type="submit"
+                    disabled={isStreaming || !input.trim()}
+                    className="absolute right-2.5 bottom-2.5 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
+                    aria-label="Send message"
+                  >
+                    {isStreaming ? (
+                      <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                    ) : (
+                      <Send className="h-4 w-4 flex-shrink-0" />
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {messages.length > 0 && (
+          <div className="flex-1 space-y-8 mt-auto w-full">
+            {messages.map((m, i) => (
+              <MessageBubble key={i} message={m} />
+            ))}
+            {isWaiting && (
+              <MessageBubble
+                message={{
+                  role: 'assistant',
+                  content: '...',
+                  timestamp: new Date(),
+                }}
+              />
+            )}
+            {isStreaming && !isWaiting && (
+              <div className="flex items-center gap-2 font-mono text-[10px] text-white/40 uppercase tracking-widest animate-pulse ml-12">
+                <Loader2 className="h-3 w-3 animate-spin text-[#3D81CC]" />
+                Initializing conversation...
+              </div>
+            )}
+            <div ref={scrollRef} className="h-4" />
           </div>
         )}
-        {messages.map((m, i) => (
-          <MessageBubble key={i} message={m} />
-        ))}
-        {isWaiting && (
-          <MessageBubble
-            message={{
-              role: 'assistant',
-              content: '...',
-              timestamp: new Date(),
-            }}
-          />
-        )}
-        {isStreaming && !isWaiting && (
-          <div className="flex items-center gap-2 font-mono text-[10px] text-white/40 uppercase tracking-widest animate-pulse ml-12">
-            <Loader2 className="h-3 w-3 animate-spin text-[#3D81CC]" />
-            Initializing conversation...
-          </div>
-        )}
-        <div ref={scrollRef} className="h-4" />
       </div>
 
-      <div className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 sticky bottom-0">
-        <form onSubmit={handleSend} className="relative max-w-4xl mx-auto w-full group">
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="TYPE A MESSAGE..."
-            className="min-h-[56px] py-4 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto"
-            disabled={isStreaming}
-            rows={1}
-          />
-          <button
-            type="submit"
-            disabled={isStreaming || !input.trim()}
-            className="absolute right-2 bottom-2 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
-            aria-label="Send message"
+      <AnimatePresence>
+        {messages.length > 0 && (
+          <motion.div
+            key="active-state"
+            layoutId="chat-input-wrapper"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
+            className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 sticky bottom-0 z-20"
           >
-            {isStreaming ? (
-              <Loader2 className="h-4 w-4 animate-spin text-white flex-shrink-0" />
-            ) : (
-              <Send className="h-4 w-4 flex-shrink-0" />
-            )}
-          </button>
-        </form>
-      </div>
+            <form onSubmit={handleSend} className="relative max-w-4xl mx-auto w-full group">
+              <Textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask anything..."
+                className="min-h-[56px] py-4 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto shadow-xl"
+                disabled={isStreaming}
+                rows={1}
+              />
+              <button
+                type="submit"
+                disabled={isStreaming || !input.trim()}
+                className="absolute right-2 bottom-2 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
+                aria-label="Send message"
+              >
+                {isStreaming ? (
+                  <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
+                ) : (
+                  <Send className="h-4 w-4 flex-shrink-0" />
+                )}
+              </button>
+            </form>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

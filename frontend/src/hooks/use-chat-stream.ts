@@ -86,6 +86,19 @@ export function useChatStream({
             try {
               const parsed = JSON.parse(data);
               
+              if (parsed.toolEvents) {
+                setIsWaiting(false);
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  if (assistantMessage) {
+                    updated.splice(updated.length - 1, 0, ...parsed.toolEvents);
+                  } else {
+                    updated.push(...parsed.toolEvents);
+                  }
+                  return updated;
+                });
+              }
+              
               if (parsed.error || parsed.chunk || parsed.citations) {
                 setIsWaiting(false);
                 if (!assistantMessage) {

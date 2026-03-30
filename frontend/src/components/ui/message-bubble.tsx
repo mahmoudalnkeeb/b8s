@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Bot, User, Copy, Check, ExternalLink } from 'lucide-react';
+import { Bot, User, Copy, Check, ExternalLink, Wrench } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import type { Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -9,11 +9,12 @@ import { CitationsList } from './citation';
 import type { CitationProps } from './citation';
 
 export interface MessageProps {
-  role: 'user' | 'assistant' | string;
+  role: 'user' | 'assistant' | 'tool' | string;
   content: string;
   timestamp?: string | Date;
   isLoading?: boolean;
   citations?: CitationProps[];
+  toolName?: string;
 }
 
 // --- Copy button for code blocks ---
@@ -164,6 +165,17 @@ const markdownComponents: Components = {
 
 // --- Main component ---
 export const MessageBubble = React.memo(({ message }: { message: MessageProps }) => {
+  if (message.role === 'tool') {
+    return (
+      <div className="flex justify-center my-4 opacity-70">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 text-white/60 text-[10px] font-mono tracking-widest uppercase shadow-sm">
+          <Wrench className="h-3 w-3 text-[#3D81CC]" />
+          {message.content || `Utilized tool: ${message.toolName || 'system'}`}
+        </div>
+      </div>
+    );
+  }
+
   const isUser = message.role === 'user';
 
   return (

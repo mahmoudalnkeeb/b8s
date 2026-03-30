@@ -72,14 +72,24 @@ export class ConversationController {
       let pendingCitations: any[] = [];
 
       for (const m of rawMessages) {
-        if (m.role === 'tool' && m.metadata?.['toolName'] === 'rag_query') {
-          try {
-            const result = JSON.parse(m.content);
-            if (result.ok && result.context) {
-              pendingCitations.push(...result.context.map((c: any) => c.citation));
+        if (m.role === 'tool') {
+          const toolName = (m.metadata?.['toolName'] as string) || 'unknown_tool';
+          clientMessages.push({
+            role: 'tool',
+            content: `Ran tool: ${toolName}`,
+            toolName: toolName,
+            timestamp: m.timestamp,
+          });
+
+          if (toolName === 'rag_query') {
+            try {
+              const result = JSON.parse(m.content);
+              if (result.ok && result.context) {
+                pendingCitations.push(...result.context.map((c: any) => c.citation));
+              }
+            } catch {
+              // Ignore parse errors
             }
-          } catch (e) {
-            // Ignore parse errors
           }
         } else if (m.role === 'assistant' && (m.content === undefined || m.content.trim() !== '')) {
           clientMessages.push({
@@ -153,20 +163,35 @@ export class ConversationController {
 
           if (chunk.newMessages) {
             const citations: any[] = [];
+            const toolEvents: any[] = [];
+
             for (const m of chunk.newMessages) {
-              if (m.role === 'tool' && m.metadata?.['toolName'] === 'rag_query') {
-                try {
-                  const result = JSON.parse(m.content);
-                  if (result.ok && result.context) {
-                    citations.push(...result.context.map((c: any) => c.citation));
+              if (m.role === 'tool') {
+                const toolName = (m.metadata?.['toolName'] as string) || 'unknown_tool';
+                toolEvents.push({
+                  role: 'tool',
+                  toolName: toolName,
+                  content: `Ran tool: ${toolName}`,
+                  timestamp: m.timestamp,
+                });
+
+                if (toolName === 'rag_query') {
+                  try {
+                    const result = JSON.parse(m.content);
+                    if (result.ok && result.context) {
+                      citations.push(...result.context.map((c: any) => c.citation));
+                    }
+                  } catch {
+                    // Ignore parse errors
                   }
-                } catch (e) {
-                  // Ignore parse errors
                 }
               }
             }
             if (citations.length > 0) {
               res.write(`data: ${JSON.stringify({ citations })}\n\n`);
+            }
+            if (toolEvents.length > 0) {
+              res.write(`data: ${JSON.stringify({ toolEvents })}\n\n`);
             }
           }
 
