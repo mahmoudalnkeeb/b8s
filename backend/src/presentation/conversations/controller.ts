@@ -66,16 +66,38 @@ export class ConversationController {
         return res.status(404).json({ error: 'Conversation not found' });
       }
 
-      // Filter out tool messages and internal metadata for the client
-      const clientMessages = conversation.messages
-        .filter((m) => m.role !== 'tool' && m.role !== 'system')
-        .filter((m) => m.role !== 'assistant' || (m.content && m.content.trim() !== ''))
-        .map((m) => ({
-          role: m.role,
-          content: m.content,
-          timestamp: m.timestamp,
-          // Hide internal metadata and toolCalls from frontend
-        }));
+      // Extract citations from tools and map messages for the client
+      const rawMessages = conversation.messages.filter((m) => m.role !== 'system');
+      const clientMessages = [];
+      let pendingCitations: any[] = [];
+
+      for (const m of rawMessages) {
+        if (m.role === 'tool' && m.metadata?.['toolName'] === 'rag_query') {
+          try {
+            const result = JSON.parse(m.content);
+            if (result.ok && result.context) {
+              pendingCitations.push(...result.context.map((c: any) => c.citation));
+            }
+          } catch (e) {
+            // Ignore parse errors
+          }
+        } else if (m.role === 'assistant' && (m.content === undefined || m.content.trim() !== '')) {
+          clientMessages.push({
+            role: m.role,
+            content: m.content || '',
+            timestamp: m.timestamp,
+            citations: pendingCitations.length > 0 ? pendingCitations : undefined,
+          });
+          pendingCitations = []; // Clear applied citations
+        } else if (m.role === 'user') {
+          clientMessages.push({
+            role: m.role,
+            content: m.content,
+            timestamp: m.timestamp,
+          });
+          pendingCitations = []; // Reset on new user message
+        }
+      }
 
       return res.status(200).json({
         ...conversation,
@@ -128,6 +150,26 @@ export class ConversationController {
 
         for await (const chunk of stream) {
           if (clientDisconnected) break;
+
+          if (chunk.newMessages) {
+            const citations: any[] = [];
+            for (const m of chunk.newMessages) {
+              if (m.role === 'tool' && m.metadata?.['toolName'] === 'rag_query') {
+                try {
+                  const result = JSON.parse(m.content);
+                  if (result.ok && result.context) {
+                    citations.push(...result.context.map((c: any) => c.citation));
+                  }
+                } catch (e) {
+                  // Ignore parse errors
+                }
+              }
+            }
+            if (citations.length > 0) {
+              res.write(`data: ${JSON.stringify({ citations })}\n\n`);
+            }
+          }
+
           if (chunk.content) {
             res.write(`data: ${JSON.stringify({ chunk: chunk.content })}\n\n`);
           }

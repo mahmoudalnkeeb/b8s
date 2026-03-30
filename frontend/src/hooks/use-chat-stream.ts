@@ -86,7 +86,7 @@ export function useChatStream({
             try {
               const parsed = JSON.parse(data);
               
-              if (parsed.error || parsed.chunk) {
+              if (parsed.error || parsed.chunk || parsed.citations) {
                 setIsWaiting(false);
                 if (!assistantMessage) {
                   assistantMessage = { role: 'assistant', content: '', timestamp: new Date() };
@@ -102,6 +102,11 @@ export function useChatStream({
               }
               if (parsed.chunk) {
                 assistantMessage!.content += parsed.chunk;
+                updateLastMessage();
+              }
+              if (parsed.citations) {
+                assistantMessage!.citations = assistantMessage!.citations || [];
+                assistantMessage!.citations.push(...parsed.citations);
                 updateLastMessage();
               }
             } catch {
