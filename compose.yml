@@ -100,7 +100,7 @@ services:
         constraints:
           - node.labels.type == ai
 
-  # Helper to pull the embedding model automatically
+  # Helper to pull the embedding model only if it doesn't already exist
   ollama-pull:
     image: curlimages/curl:latest
     deploy:
@@ -114,7 +114,7 @@ services:
       [
         'sh',
         '-c',
-        'while ! curl -s http://ollama:11434 >/dev/null; do echo "Waiting for Ollama..."; sleep 5; done; echo "Starting pull..."; curl -X POST http://ollama:11434/api/pull -d ''{"name": "nomic-embed-text-v2-moe"}''',
+        'MODEL="nomic-embed-text-v2-moe"; while ! curl -s http://ollama:11434 >/dev/null; do echo "Waiting for Ollama..."; sleep 5; done; if curl -s http://ollama:11434/api/tags | grep -q "$MODEL"; then echo "Model $MODEL already exists, skipping pull."; else echo "Model $MODEL not found, pulling..."; curl -X POST http://ollama:11434/api/pull -d "{\"name\": \"$MODEL\"}"; fi',
       ]
 
 volumes:

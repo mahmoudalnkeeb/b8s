@@ -113,18 +113,6 @@ jobs:
           overwrite: true
           rm: true
 
-      - name: Remove old Docker images
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          script: |
-            # Remove dangling images and old versions
-            docker image prune -f
-            docker images -f "dangling=true" -q | xargs -r docker rmi || true
-            docker system prune -af --filter "until=24h" || true
-
       - name: Create .env file on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -148,6 +136,16 @@ jobs:
             EMBEDDING_MODEL=nomic-embed-text-v2-moe
             EOF
 
+      - name: Pull latest images on EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/b8s-app:latest
+            docker pull ${{ secrets.DOCKER_USERNAME }}/b8s-frontend:latest
+
       - name: Execute Swarm Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
@@ -158,3 +156,15 @@ jobs:
             cd /home/${{ secrets.EC2_USERNAME }}/b8s-deployment
             export DOCKER_REGISTRY=${{ secrets.DOCKER_USERNAME }}
             docker stack deploy --with-registry-auth -c compose.yml b8s
+
+      - name: Clean up old Docker images
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            # Remove dangling images (old layers left after pulling new :latest)
+            docker image prune -f
+            # Remove any images not used by running containers
+            docker image prune -af --filter "until=1h" || true
