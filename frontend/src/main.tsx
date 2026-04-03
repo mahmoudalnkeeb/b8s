@@ -10,6 +10,7 @@ import { routeTree } from './routeTree.gen'
 import { AuthProvider } from './hooks/use-auth'
 import { ThemeProvider } from './hooks/use-theme'
 import { ConfirmProvider } from './components/ui/confirm-dialog'
+import { ErrorBoundary } from './components/ui/error-boundary'
 
 import './index.css'
 
@@ -36,7 +37,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <ThemeProvider>
         <AuthProvider>
           <ConfirmProvider>
-            <RouterProvider router={router} />
+            <ErrorBoundary>
+              <RouterProvider router={router} />
+            </ErrorBoundary>
           </ConfirmProvider>
         </AuthProvider>
       </ThemeProvider>

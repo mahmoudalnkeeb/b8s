@@ -1,5 +1,12 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
+
+export interface User {
+  userId: string;
+  email: string;
+  name: string;
+  role: string;
+}
 
 export const authApi = {
   login: async (data: any) => {
@@ -8,6 +15,10 @@ export const authApi = {
   },
   register: async (data: any) => {
     const response = await apiClient.post('/auth/register', data)
+    return response.data
+  },
+  getMe: async (): Promise<User> => {
+    const response = await apiClient.get('/auth/me')
     return response.data
   },
 }
@@ -25,5 +36,13 @@ export const useLogin = () => {
 export const useRegister = () => {
   return useMutation({
     mutationFn: authApi.register,
+  })
+}
+
+export const useMe = (options?: { enabled?: boolean }) => {
+  return useQuery({
+    queryKey: ['me'],
+    queryFn: authApi.getMe,
+    enabled: options?.enabled ?? true,
   })
 }

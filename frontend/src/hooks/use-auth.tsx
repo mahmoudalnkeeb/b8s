@@ -1,22 +1,31 @@
 import React, { createContext, useContext, useState } from 'react';
+import { useMe, type User } from '../api/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: any;
-  login: (token: string, user: any) => void;
+  user: User | null;
+  isLoading: boolean;
+  login: (token: string, user: User) => void;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('blueprints_token'));
-  const [user, setUser] = useState<any>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('blueprints_token'));
+  const [user, setUser] = useState<User | null>(null);
+  const { data: userData, isLoading } = useMe({ enabled: isAuthenticated });
 
-  const login = (token: string, user: any) => {
+  React.useEffect(() => {
+    if (userData) {
+      setUser(userData);
+    }
+  }, [userData]);
+
+  const login = (token: string, userData: User) => {
     localStorage.setItem('blueprints_token', token);
     setIsAuthenticated(true);
-    setUser(user);
+    setUser(userData);
   };
 
   const logout = () => {
@@ -26,7 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, user, isLoading, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

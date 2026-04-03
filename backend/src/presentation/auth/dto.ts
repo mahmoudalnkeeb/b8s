@@ -9,6 +9,7 @@ export const registerDto = z.object({
 export const loginDto = z.object({
   email: z.email().toLowerCase().trim(),
   password: z.string().min(1, 'Password is required'),
+  rememberMe: z.boolean().optional(),
 });
 
 export type RegisterDto = z.infer<typeof registerDto>;

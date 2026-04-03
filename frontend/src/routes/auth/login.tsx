@@ -12,14 +12,15 @@ function Login() {
   const { login: authLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const login = useLogin();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const data = await login.mutateAsync({ email, password });
-      authLogin(data.token, data.user);
+      const data = await login.mutateAsync({ email, password, rememberMe });
+      authLogin(data.token, { userId: data.userId, email: data.email, name: email.split('@')[0], role: 'user' });
       toast.success('Access granted.');
       navigate({ to: '/agents' });
     } catch (err: any) {
@@ -49,8 +50,9 @@ function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
-            <label className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">Email Address</label>
+            <label htmlFor="email" className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">Email Address</label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -60,8 +62,9 @@ function Login() {
             />
           </div>
           <div className="space-y-2">
-            <label className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">Password</label>
+            <label htmlFor="password" className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">Password</label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -69,6 +72,19 @@ function Login() {
               placeholder="••••••••"
               required
             />
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input
+              id="rememberMe"
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 accent-primary border-foreground/20 bg-transparent rounded-none"
+            />
+            <label htmlFor="rememberMe" className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest cursor-pointer">
+              Remember me for 30 days
+            </label>
           </div>
 
           <button 

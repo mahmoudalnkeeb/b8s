@@ -35,7 +35,7 @@ export const Route = createRootRoute({
 });
 
 function RootLayout() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user: authUser } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
@@ -59,7 +59,7 @@ function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+    if (typeof window !== 'undefined' && window.innerWidth < 768 && location.pathname) {
       setIsSidebarOpen(false);
     }
   }, [location.pathname]);
@@ -310,12 +310,12 @@ function RootLayout() {
                 )}
               >
                 <div className="h-8 w-8 bg-primary flex items-center justify-center text-[10px] font-mono font-bold text-primary-foreground shrink-0 uppercase" aria-hidden="true">
-                  U
+                  {authUser?.name?.charAt(0) || 'U'}
                 </div>
                 {isSidebarOpen && (
                   <>
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs text-foreground truncate">User</p>
+                      <p className="font-mono text-xs text-foreground truncate">{authUser?.name || 'User'}</p>
                       <p className="font-mono text-[9px] text-foreground/30 uppercase tracking-widest">
                         {billingData?.tier === 'none' ? 'No Plan' : `${billingData?.tier || '—'} · ${((billingData?.cuBalance || 0) + (billingData?.grantedCuBalance || 0)).toFixed(2)} CU`}
                       </p>

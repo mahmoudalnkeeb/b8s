@@ -4,6 +4,7 @@ import { UnauthorizedError } from '../../domain/errors';
 export interface LoginRequest {
   email: string;
   password: string;
+  rememberMe?: boolean;
 }
 
 export class LoginUserUseCase {
@@ -24,7 +25,8 @@ export class LoginUserUseCase {
       throw new UnauthorizedError('Invalid credentials', 'INVALID_CREDENTIALS');
     }
 
-    const token = this.tokenService.generate({ userId: user.userId, email: user.email });
+    const expiresIn = request.rememberMe ? '30d' : undefined;
+    const token = this.tokenService.generate({ userId: user.userId, email: user.email }, expiresIn);
 
     return { token, userId: user.userId, email: user.email };
   }
