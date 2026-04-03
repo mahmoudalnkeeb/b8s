@@ -303,28 +303,43 @@ MongoDB ──► Update document status
 
 ### Production Architecture
 
-The platform runs on **AWS EC2** using **Docker Swarm** for orchestration with **Nginx** as a reverse proxy.
+The platform runs on **AWS EC2** using **Docker Swarm** for orchestration with **Nginx** as a reverse proxy. The swarm uses labeled nodes to distribute services:
+
+- **app nodes**: Frontend and Backend API
+- **db nodes**: MongoDB, Qdrant, Redis
+- **ai nodes**: Ollama
 
 ```
 Internet
     │
     ▼
-┌─────────────────────────────────┐
-│           EC2 Instance          │
-│  ┌─────────┐  ┌──────────────┐  │
-│  │  Nginx  │  │ Docker Swarm │  │
-│  │ :80/:443│─►│  Cluster     │  │
-│  └─────────┘  │              │  │
-│               │ ┌──────────┐ │  │
-│               │ │ App      │ │  │
-│               │ │ Frontend │ │  │
-│               │ │ MongoDB  │ │  │
-│               │ │ Qdrant   │ │  │
-│               │ │ Redis    │ │  │
-│               │ │ Ollama   │ │  │
-│               │ └──────────┘ │  │
-│               └──────────────┘  │
-└─────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────┐
+│                      EC2 Swarm Manager                      │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │  Nginx Reverse Proxy (:80/:443)                     │   │
+│  │  Routes: /api → app, / → frontend                    │   │
+│  └─────────────────────┬───────────────────────────────┘   │
+└────────────────────────┼────────────────────────────────────┘
+                         │
+        ┌────────────────┼────────────────┐
+        ▼                ▼                ▼
+┌───────────────┐  ┌───────────────┐  ┌───────────────┐
+│  App Node     │  │  DB Node      │  │  AI Node      │
+│  (app label)  │  │  (db label)   │  │  (ai label)   │
+├───────────────┤  ├───────────────┤  ├───────────────┤
+│ ┌───────────┐ │  │ ┌───────────┐ │  │ ┌───────────┐ │
+│ │ Frontend  │ │  │ │ MongoDB   │ │  │ │  Ollama   │ │
+│ │   :3001   │ │  │ │  :27017   │ │  │ │  :11434   │ │
+│ └───────────┘ │  │ └───────────┘ │  │ └───────────┘ │
+│ ┌───────────┐ │  │ ┌───────────┐ │  │               │
+│ │  Backend  │ │  │ │  Qdrant   │ │  │               │
+│ │   :3000   │ │  │ │  :6333    │ │  │               │
+│ └───────────┘ │  │ └───────────┘ │  │               │
+│               │  │ ┌───────────┐ │  │               │
+│               │  │ │  Redis    │ │  │               │
+│               │  │ │  :6379   │ │  │               │
+│               │  │ └───────────┘ │  │               │
+└───────────────┘  └───────────────┘  └───────────────┘
 ```
 
 ### CI/CD Pipeline
