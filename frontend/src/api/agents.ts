@@ -1,10 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiClient } from './client'
 
+export interface PaginatedAgentsResponse {
+  agents: any[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface UseMyAgentsParams {
+  limit?: number;
+  offset?: number;
+  search?: string;
+}
+
 export const agentsApi = {
-  getMyAgents: async () => {
-    const response = await apiClient.get('/agents/my')
-    return response.data
+  getMyAgents: async (params?: UseMyAgentsParams) => {
+    const response = await apiClient.get('/agents/my', { params })
+    return response.data as PaginatedAgentsResponse
   },
   getPinnedAgents: async () => {
     const response = await apiClient.get('/agents/pinned')
@@ -72,10 +85,11 @@ export const agentsApi = {
   },
 }
 
-export const useMyAgents = (options?: any) => {
+export const useMyAgents = (params?: UseMyAgentsParams, options?: any) => {
   return useQuery({
-    queryKey: ['agents', 'my'],
-    queryFn: agentsApi.getMyAgents,
+    queryKey: ['agents', 'my', params],
+    queryFn: () => agentsApi.getMyAgents(params),
+    refetchOnWindowFocus: true,
     ...options,
   })
 }
@@ -84,6 +98,7 @@ export const useDiscoverAgents = (search?: string) => {
   return useQuery({
     queryKey: ['agents', 'discover', search],
     queryFn: () => agentsApi.getDiscoverAgents(search),
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -91,6 +106,7 @@ export const usePinnedAgents = (options?: any) => {
   return useQuery({
     queryKey: ['agents', 'pinned'],
     queryFn: agentsApi.getPinnedAgents,
+    refetchOnWindowFocus: true,
     ...options,
   })
 }
@@ -100,6 +116,7 @@ export const useAgent = (id: string) => {
     queryKey: ['agents', id],
     queryFn: () => agentsApi.getAgentById(id),
     enabled: !!id,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -173,6 +190,7 @@ export const useKnowledgeBase = (id: string) => {
     queryKey: ['agents', id, 'kb'],
     queryFn: () => agentsApi.getKnowledgeBase(id),
     enabled: !!id,
+    refetchOnWindowFocus: true,
   })
 }
 
@@ -229,5 +247,6 @@ export const useAgentMemories = (id: string) => {
     queryKey: ['agents', id, 'memories'],
     queryFn: () => agentsApi.getMemories(id),
     enabled: !!id,
+    refetchOnWindowFocus: true,
   })
 }

@@ -91,8 +91,17 @@ export class AgentController {
       if (!user) throw new UnauthorizedError();
       const userId = user.userId;
 
-      const agents = await DIContainer.listUserAgents.execute(userId);
-      return res.status(200).json(agents);
+      const limit = Math.min(parseInt(req.query['limit'] as string) || 20, 100);
+      const offset = parseInt(req.query['offset'] as string) || 0;
+      const search = req.query['search'] as string | undefined;
+
+      const result = await DIContainer.listUserAgents.execute({ 
+        userId, 
+        limit, 
+        offset, 
+        search: search || '' 
+      });
+      return res.status(200).json(result);
     } catch (error) {
       return next(error);
     }

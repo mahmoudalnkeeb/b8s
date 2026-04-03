@@ -1,4 +1,4 @@
-import { IAgentRepository } from '../../../domain/ports/agent-repository';
+import { IAgentRepository, type PaginationParams } from '../../../domain/ports/agent-repository';
 import { IAgent, AccessType, MemoryReadAccess, MemoryWriteAccess } from '../../../domain/models';
 import { DatabaseError } from '../../../domain/errors';
 import { AgentModel, IAgent as IAgentDoc } from '../../db/models';
@@ -70,6 +70,48 @@ export class MongoAgentRepository implements IAgentRepository {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(message, 'MONGO_FIND_USER_AGENTS_ERROR');
+    }
+  }
+
+  async findByOwnerIdWithPagination(ownerId: string, params: PaginationParams): Promise<IAgent[]> {
+    try {
+      const query: Record<string, unknown> = { ownerId };
+      
+      if (params.search) {
+        const escaped = params.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        query['$or'] = [
+          { name: { $regex: escaped, $options: 'i' } },
+          { description: { $regex: escaped, $options: 'i' } },
+        ];
+      }
+
+      const docs = await AgentModel.find(query)
+        .sort({ updatedAt: -1 })
+        .skip(params.offset)
+        .limit(params.limit);
+      return docs.map((doc) => this.mapToDomain(doc));
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new DatabaseError(message, 'MONGO_FIND_USER_AGENTS_PAGINATION_ERROR');
+    }
+  }
+
+  async countByOwnerId(ownerId: string, search: string): Promise<number> {
+    try {
+      const query: Record<string, unknown> = { ownerId };
+      
+      if (search) {
+        const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        query['$or'] = [
+          { name: { $regex: escaped, $options: 'i' } },
+          { description: { $regex: escaped, $options: 'i' } },
+        ];
+      }
+
+      return await AgentModel.countDocuments(query);
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new DatabaseError(message, 'MONGO_COUNT_USER_AGENTS_ERROR');
     }
   }
 

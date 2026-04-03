@@ -51,40 +51,43 @@ function Register() {
 
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="space-y-2">
-            <label className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">
+            <label htmlFor="name" className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">
               Full Name
             </label>
             <input
+              id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full bg-transparent border-b border-foreground/20 px-0 py-3 font-mono text-sm text-foreground focus:border-primary focus:outline-none transition-colors rounded-none placeholder:text-foreground/20"
+              className="w-full bg-transparent border-b border-foreground/20 px-0 py-3 font-mono text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors rounded-none placeholder:text-foreground/20"
               placeholder="YOUR NAME"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">
+            <label htmlFor="email" className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">
               Email Address
             </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-transparent border-b border-foreground/20 px-0 py-3 font-mono text-sm text-foreground focus:border-primary focus:outline-none transition-colors rounded-none placeholder:text-foreground/20"
+              className="w-full bg-transparent border-b border-foreground/20 px-0 py-3 font-mono text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors rounded-none placeholder:text-foreground/20"
               placeholder="USER@SYSTEM.COM"
               required
             />
           </div>
           <div className="space-y-2">
-            <label className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">
+            <label htmlFor="password" className="font-mono text-[10px] text-foreground/50 tracking-widest uppercase block">
               Password
             </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-transparent border-b border-foreground/20 px-0 py-3 font-mono text-sm text-foreground focus:border-primary focus:outline-none transition-colors rounded-none"
+              className="w-full bg-transparent border-b border-foreground/20 px-0 py-3 font-mono text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors rounded-none"
               placeholder="••••••••"
               required
             />

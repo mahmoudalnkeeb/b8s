@@ -22,6 +22,7 @@ function MyAgents() {
   const toolsList = Array.isArray(tools) ? tools : [];
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft'>('all');
   const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
 
   const manager = useAgentManager();
   const { confirm } = useConfirm();
@@ -192,20 +193,47 @@ function MyAgents() {
                 {sortBy === 'name' ? 'A–Z' : 'Recent'}
               </button>
 
-              {/* Search */}
+              {/* Search - Desktop */}
               <div className="relative hidden md:block">
                 <label htmlFor="agent-search" className="sr-only">Filter agents</label>
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/20" aria-hidden="true" />
                 <input
                   id="agent-search"
+                  type="search"
                   placeholder="Filter agents..."
-                  className="pl-10 w-48 h-10 bg-transparent border border-border font-mono text-xs text-foreground focus:border-primary focus:outline-none transition-colors placeholder:text-foreground/20 px-3"
+                  className="pl-10 w-48 h-10 bg-transparent border border-border font-mono text-xs text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors placeholder:text-foreground/20 px-3 rounded-none"
                   value={manager.search}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => manager.setSearch(e.target.value)}
                 />
               </div>
+
+              {/* Search Toggle - Mobile */}
+              <button
+                onClick={() => setShowMobileSearch(!showMobileSearch)}
+                aria-label="Toggle search"
+                className="md:hidden flex items-center justify-center w-10 h-10 border border-border bg-card text-foreground/40 hover:text-foreground transition-colors"
+              >
+                <Search className="h-4 w-4" />
+              </button>
             </div>
           </div>
+
+          {/* Mobile Search Bar */}
+          {showMobileSearch && (
+            <div className="md:hidden relative">
+              <label htmlFor="agent-search-mobile" className="sr-only">Filter agents</label>
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/20" aria-hidden="true" />
+              <input
+                id="agent-search-mobile"
+                type="search"
+                placeholder="Filter agents..."
+                className="w-full pl-10 h-12 bg-card border border-border font-mono text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-colors placeholder:text-foreground/20 px-3 rounded-none"
+                value={manager.search}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => manager.setSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+          )}
 
           {/* Results count */}
           <p className="font-mono text-[10px] text-foreground/20 uppercase tracking-widest" aria-live="polite">

@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select } from '@/components/ui/select';
-import { Eye, PenTool } from 'lucide-react';
+import { Eye, PenTool, AlertCircle } from 'lucide-react';
 import { Link } from '@tanstack/react-router';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +17,20 @@ export interface CreateAgentFormProps {
 }
 
 export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSubmit, onCancel }: CreateAgentFormProps) => {
+  const [touched, setTouched] = useState({ name: false, instructions: false });
+
+  const nameError = touched.name && !state.name.trim();
+  const instructionsError = touched.instructions && !state.instructions.trim();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    if (!state.name.trim() || !state.instructions.trim()) {
+      setTouched({ name: true, instructions: true });
+      e.preventDefault();
+      return;
+    }
+    onSubmit(e);
+  };
+
   return (
     <div className="bg-card border border-border overflow-hidden">
       <div className="p-8 border-b border-border">
@@ -31,25 +45,35 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
           Define the identity and capabilities of your agent.
         </p>
       </div>
-      <form onSubmit={onSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
-              <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
-                Name
+              <label htmlFor="agent-name" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
+                Name <span className="text-red-400">*</span>
               </label>
               <Input
+                id="agent-name"
                 placeholder="e.g. Senior Researcher"
                 value={state.name}
                 onChange={(e) => state.setName(e.target.value)}
+                onBlur={() => setTouched(t => ({ ...t, name: true }))}
+                aria-invalid={nameError}
+                className={cn(nameError && "border-red-400 focus:border-red-400 focus:ring-red-400")}
                 required
               />
+              {nameError && (
+                <p className="font-mono text-[9px] text-red-400 flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" /> Agent name is required
+                </p>
+              )}
             </div>
             <div className="space-y-3">
-              <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
+              <label htmlFor="agent-visibility" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                 Visibility
               </label>
               <Select
+                id="agent-visibility"
                 value={state.visibility}
                 onChange={(e) => state.setVisibility(e.target.value)}
               >
@@ -60,10 +84,11 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
           </div>
 
           <div className="space-y-3">
-            <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
+            <label htmlFor="agent-description" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
               Description
             </label>
             <Input
+              id="agent-description"
               placeholder="What is the primary goal of this agent?"
               value={state.description}
               onChange={(e) => state.setDescription(e.target.value)}
@@ -71,16 +96,24 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
           </div>
 
           <div className="space-y-3">
-            <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
-              Core Instructions
+            <label htmlFor="agent-instructions" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
+              Core Instructions <span className="text-red-400">*</span>
             </label>
             <Textarea
+              id="agent-instructions"
               placeholder="Think step by step. You are an expert in..."
               value={state.instructions}
               onChange={(e) => state.setInstructions(e.target.value)}
-              className="min-h-[200px]"
+              onBlur={() => setTouched(t => ({ ...t, instructions: true }))}
+              aria-invalid={instructionsError}
+              className={cn("min-h-[200px]", instructionsError && "border-red-400 focus:border-red-400 focus:ring-red-400")}
               required
             />
+            {instructionsError && (
+              <p className="font-mono text-[9px] text-red-400 flex items-center gap-1">
+                <AlertCircle className="h-3 w-3" /> Instructions are required
+              </p>
+            )}
           </div>
 
           <div className="space-y-6">

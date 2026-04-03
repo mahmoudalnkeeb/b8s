@@ -106,17 +106,24 @@ function SettingsPage() {
           <div className="border-t border-border pt-6">
             <p className="font-mono text-[9px] text-foreground/40 uppercase tracking-widest mb-3">Redeem Coupon</p>
             <div className="flex gap-3 items-center">
-              <input
-                type="text"
-                value={couponCode}
-                onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                placeholder="Enter coupon code"
-                className="flex-1 bg-background border border-border text-foreground font-mono text-xs px-3 py-2.5 focus:outline-none focus:border-primary transition-colors uppercase max-w-xs"
-              />
+              <div className="relative flex-1 max-w-xs">
+                <input
+                  id="coupon-code"
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                  maxLength={20}
+                  className="w-full bg-background border border-border text-foreground font-mono text-xs px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors uppercase rounded-none"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 font-mono text-[9px] text-foreground/30">
+                  {couponCode.length}/20
+                </span>
+              </div>
               <button
                 onClick={handleRedeem}
                 disabled={redeemCoupon.isPending || !couponCode.trim()}
-                className="bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest px-6 py-2.5 hover:bg-foreground hover:text-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer"
+                className="bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest px-6 py-2.5 hover:bg-foreground hover:text-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
               >
                 {redeemCoupon.isPending ? 'Redeeming...' : 'Redeem'}
               </button>
