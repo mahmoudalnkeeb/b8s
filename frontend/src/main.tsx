@@ -8,6 +8,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { routeTree } from './routeTree.gen'
 
 import { AuthProvider } from './hooks/use-auth'
+import { ThemeProvider } from './hooks/use-theme'
 import { ConfirmProvider } from './components/ui/confirm-dialog'
 
 import './index.css'
@@ -32,12 +33,15 @@ declare module '@tanstack/react-router' {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <ConfirmProvider>
-          <RouterProvider router={router} />
-        </ConfirmProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ConfirmProvider>
+            <RouterProvider router={router} />
+          </ConfirmProvider>
+        </AuthProvider>
+      </ThemeProvider>
       <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   </React.StrictMode>,
 )
+

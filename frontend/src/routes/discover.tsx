@@ -52,14 +52,14 @@ function Discover() {
       <header className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30">
-              <div className="h-px w-12 bg-[#3D81CC]" aria-hidden="true"></div>
-              <span className="text-[#3D81CC]">Community</span>
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30">
+              <div className="h-px w-12 bg-primary" aria-hidden="true"></div>
+              <span className="text-primary">Community</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-sans font-black text-white uppercase tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-sans font-black text-foreground uppercase tracking-tight">
               Discover
             </h1>
-            <p className="font-sans text-sm text-white/50 font-light max-w-lg">
+            <p className="font-sans text-sm text-foreground/50 font-light max-w-lg">
               Explore AI assistants built by the community. Pin useful agents and start chatting instantly.
             </p>
           </div>
@@ -67,11 +67,11 @@ function Discover() {
           <div className="w-full md:w-[400px] shrink-0">
             <div className="relative">
               <label htmlFor="discover-search" className="sr-only">Search community agents</label>
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" aria-hidden="true" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/20" aria-hidden="true" />
               <input
                 id="discover-search"
                 placeholder="Search agents..."
-                className="pl-10 w-full h-10 bg-transparent border border-white/10 font-mono text-xs text-white focus:border-[#3D81CC] focus:outline-none transition-colors placeholder:text-white/20 px-3"
+                className="pl-10 w-full h-10 bg-transparent border border-border font-mono text-xs text-foreground focus:border-primary focus:outline-none transition-colors placeholder:text-foreground/20 px-3"
                 value={search}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearch(e.target.value)}
               />
@@ -82,7 +82,7 @@ function Discover() {
 
       {/* Results count */}
       <div className="flex items-center justify-between" aria-live="polite">
-        <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest">
+        <p className="font-mono text-[10px] text-foreground/20 uppercase tracking-widest">
           {isLoading ? 'Searching...' : `${agentsList.length} agent${agentsList.length !== 1 ? 's' : ''} available`}
         </p>
       </div>
@@ -90,7 +90,7 @@ function Discover() {
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-none">
           {[1,2,3,4,5,6].map(i => (
-            <div key={i} className="h-[320px] bg-[#0a0a0a] animate-pulse" />
+            <div key={i} className="h-[320px] bg-card animate-pulse" />
           ))}
         </div>
       ) : (
@@ -99,16 +99,16 @@ function Discover() {
             <article
               key={agent.agentId}
               aria-label={`Community agent: ${agent.name}`}
-              className="bg-[#0a0a0a] border border-white/10 p-8 hover:bg-[#111] transition-all duration-200 group cursor-pointer flex flex-col min-h-[320px] relative hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#3D81CC]/5 focus-within:bg-[#111]"
+              className="bg-card border border-border p-8 hover:bg-secondary transition-all duration-200 group cursor-pointer flex flex-col min-h-[320px] relative hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5 focus-within:bg-secondary"
               tabIndex={0}
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleChat(agent.agentId); } }}
             >
               {/* Left accent bar */}
-              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#3D81CC] opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+              <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
 
               <div className="flex justify-between items-start mb-6">
-                <div className="w-10 h-10 bg-[#3D81CC]/10 flex items-center justify-center group-hover:bg-[#3D81CC]/20 transition-colors" aria-hidden="true">
-                  <Bot className="h-5 w-5 text-[#3D81CC]" />
+                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors" aria-hidden="true">
+                  <Bot className="h-5 w-5 text-primary" />
                 </div>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -117,7 +117,7 @@ function Discover() {
                       aria-label={agent.isPinned ? 'Unpin agent' : 'Pin to sidebar'}
                       className={cn(
                         "h-8 w-8 flex items-center justify-center transition-all bg-transparent border-none cursor-pointer",
-                        agent.isPinned ? "text-[#3D81CC]" : "text-white/20 hover:text-white/50"
+                        agent.isPinned ? "text-primary" : "text-foreground/20 hover:text-foreground/50"
                       )}
                     >
                       {agent.isPinned ? <PinOff className="h-3.5 w-3.5" /> : <Pin className="h-3.5 w-3.5" />}
@@ -127,16 +127,16 @@ function Discover() {
                 </Tooltip>
               </div>
 
-              <h3 className="font-sans font-black text-xl text-white group-hover:text-[#3D81CC] transition-colors mb-2 uppercase tracking-tight">
+              <h3 className="font-sans font-black text-xl text-foreground group-hover:text-primary transition-colors mb-2 uppercase tracking-tight">
                 {agent.name}
               </h3>
-              <p className="font-sans text-xs text-white/40 font-light leading-relaxed line-clamp-3 min-h-[48px]">
+              <p className="font-sans text-xs text-foreground/40 font-light leading-relaxed line-clamp-3 min-h-[48px]">
                 {agent.description || "An AI assistant ready to help with your tasks."}
               </p>
 
               {/* Author info */}
               {agent.createdBy && (
-                <div className="flex items-center gap-1.5 mt-3 font-mono text-[9px] text-white/20 uppercase tracking-widest">
+                <div className="flex items-center gap-1.5 mt-3 font-mono text-[9px] text-foreground/20 uppercase tracking-widest">
                   <Users className="h-3 w-3" aria-hidden="true" />
                   <span>by {agent.createdBy}</span>
                 </div>
@@ -145,7 +145,7 @@ function Discover() {
               <div className="mt-auto pt-6 space-y-4">
                 <div className="flex flex-wrap gap-1.5">
                   {agent.tags?.map((tag: string) => (
-                    <span key={tag} className="font-mono text-[8px] uppercase tracking-widest px-2 py-1 bg-white/5 text-white/30 border border-white/10">
+                    <span key={tag} className="font-mono text-[8px] uppercase tracking-widest px-2 py-1 bg-foreground/5 text-foreground/30 border border-border">
                       {tag}
                     </span>
                   ))}
@@ -154,7 +154,7 @@ function Discover() {
                 <button
                   onClick={() => handleChat(agent.agentId)}
                   aria-label={`Start chat with ${agent.name}`}
-                  className="w-full bg-[#3D81CC] text-white font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-white hover:text-black transition-colors flex items-center justify-center gap-2 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-white"
+                  className="w-full bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest py-3 hover:bg-foreground hover:text-background transition-colors flex items-center justify-center gap-2 border-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <MessageSquare className="h-3.5 w-3.5" />
                   Start Chat
@@ -164,10 +164,10 @@ function Discover() {
           ))}
 
           {(!agents || agents.length === 0) && (
-            <div className="col-span-full bg-[#0a0a0a] p-20 text-center space-y-4">
-              <Globe className="h-12 w-12 mx-auto text-white/10 mb-4" aria-hidden="true" />
-              <h3 className="font-sans font-black text-xl text-white uppercase">No Agents Found</h3>
-              <p className="font-mono text-xs text-white/30 uppercase tracking-widest max-w-md mx-auto">
+            <div className="col-span-full bg-card p-20 text-center space-y-4">
+              <Globe className="h-12 w-12 mx-auto text-foreground/10 mb-4" aria-hidden="true" />
+              <h3 className="font-sans font-black text-xl text-foreground uppercase">No Agents Found</h3>
+              <p className="font-mono text-xs text-foreground/30 uppercase tracking-widest max-w-md mx-auto">
                 {search ? 'Try a different search term or clear the filter.' : 'No public agents are available yet. Be the first to publish one!'}
               </p>
             </div>

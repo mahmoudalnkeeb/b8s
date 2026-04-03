@@ -24,7 +24,7 @@ const DialogOverlay = React.forwardRef<
       exit={{ opacity: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "fixed inset-0 z-50 bg-black/80",
+        "fixed inset-0 z-50 bg-black/60 dark:bg-black/80",
         className
       )}
       ref={ref}
@@ -46,7 +46,7 @@ const DialogContent = React.forwardRef<
       transition={{ duration: 0.2, ease: "easeOut" }}
       ref={ref}
       className={cn(
-        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg gap-4 border border-white/10 bg-[#0a0a0a] p-6 shadow-lg",
+        "fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg gap-4 border border-border bg-card p-6 shadow-lg",
         className
       )}
       {...(props as any)}
@@ -96,7 +96,7 @@ const DialogTitle = React.forwardRef<
   <DialogPrimitive.Title
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
+      "text-lg font-semibold leading-none tracking-tight text-foreground",
       className
     )}
     {...props}

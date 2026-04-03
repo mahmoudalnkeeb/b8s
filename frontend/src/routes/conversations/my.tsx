@@ -40,7 +40,7 @@ function MyConversations() {
 
   if (isLoading)
     return (
-      <div className="p-10 text-center font-mono text-xs text-white/30 uppercase tracking-widest">
+      <div className="p-10 text-center font-mono text-xs text-foreground/30 uppercase tracking-widest">
         Loading conversations...
       </div>
     );
@@ -55,14 +55,14 @@ function MyConversations() {
       <header className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30">
-              <div className="h-px w-12 bg-[#3D81CC]"></div>
-              <span className="text-[#3D81CC]">History</span>
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30">
+              <div className="h-px w-12 bg-primary"></div>
+              <span className="text-primary">History</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-sans font-black text-white uppercase tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-sans font-black text-foreground uppercase tracking-tight">
               Conversations
             </h1>
-            <p className="font-sans text-sm text-white/50 font-light">
+            <p className="font-sans text-sm text-foreground/50 font-light">
               Resume chats with your agents.
             </p>
           </div>
@@ -72,7 +72,7 @@ function MyConversations() {
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-white/10 border border-white/10">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-foreground/10 border border-border">
         {convList.map((conv: any) => (
           <Link
             key={conv.conversationId}
@@ -80,29 +80,29 @@ function MyConversations() {
             params={{ conversationId: conv.conversationId }}
             className="no-underline block group"
           >
-            <div className="bg-[#0a0a0a] p-8 hover:bg-[#111] transition-colors flex flex-col min-h-[160px] relative">
+            <div className="bg-card p-8 hover:bg-secondary transition-colors flex flex-col min-h-[160px] relative">
               <div className="flex justify-between items-start mb-4">
-                <div className="w-10 h-10 bg-[#3D81CC]/10 flex items-center justify-center group-hover:bg-[#3D81CC]/20 transition-colors">
-                  <MessageCircle className="h-5 w-5 text-[#3D81CC]" />
+                <div className="w-10 h-10 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                  <MessageCircle className="h-5 w-5 text-primary" />
                 </div>
                 <button
-                  className="opacity-0 group-hover:opacity-100 text-white/20 hover:text-red-400 transition-all h-8 w-8 flex items-center justify-center bg-transparent border-none cursor-pointer"
+                  className="opacity-0 group-hover:opacity-100 text-foreground/20 hover:text-red-400 transition-all h-8 w-8 flex items-center justify-center bg-transparent border-none cursor-pointer"
                   onClick={(e) => handleDelete(e, conv.conversationId)}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
               </div>
 
-              <h3 className="font-sans font-black text-lg text-white group-hover:text-[#3D81CC] transition-colors uppercase tracking-tight line-clamp-1 mb-2">
+              <h3 className="font-sans font-black text-lg text-foreground group-hover:text-primary transition-colors uppercase tracking-tight line-clamp-1 mb-2">
                 {conv.agentName || 'New Conversation'}
               </h3>
 
-              <div className="flex items-center justify-between border-t border-white/10 pt-4 mt-auto">
-                <div className="flex items-center gap-1.5 font-mono text-[9px] text-white/20 uppercase tracking-widest">
+              <div className="flex items-center justify-between border-t border-border pt-4 mt-auto">
+                <div className="flex items-center gap-1.5 font-mono text-[9px] text-foreground/20 uppercase tracking-widest">
                   <Clock className="h-3 w-3" />
                   {new Date(conv.updatedAt).toLocaleDateString()}
                 </div>
-                <div className="font-mono text-[9px] text-white/20 uppercase tracking-widest">
+                <div className="font-mono text-[9px] text-foreground/20 uppercase tracking-widest">
                   {conv.conversationId.slice(0, 8)}
                 </div>
               </div>
@@ -111,10 +111,10 @@ function MyConversations() {
         ))}
 
         {convList.length === 0 && (
-          <div className="col-span-full bg-[#0a0a0a] p-20 text-center space-y-6">
-            <MessageCircle className="h-12 w-12 mx-auto text-white/10" />
-            <h3 className="font-sans font-black text-2xl text-white uppercase">No Active Chats</h3>
-            <p className="font-sans text-sm text-white/40 font-light max-w-sm mx-auto">
+          <div className="col-span-full bg-card p-20 text-center space-y-6">
+            <MessageCircle className="h-12 w-12 mx-auto text-foreground/10" />
+            <h3 className="font-sans font-black text-2xl text-foreground uppercase">No Active Chats</h3>
+            <p className="font-sans text-sm text-foreground/40 font-light max-w-sm mx-auto">
               Start a conversation with an agent to see it here.
             </p>
             <Button onClick={() => navigate({ to: '/discover' })} variant="default" className="h-11 px-8">

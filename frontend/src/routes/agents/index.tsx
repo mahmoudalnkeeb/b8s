@@ -104,14 +104,14 @@ function MyAgents() {
       <header className="space-y-6">
         <div className="flex justify-between items-start">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30">
-              <div className="h-px w-12 bg-[#3D81CC]" aria-hidden="true"></div>
-              <span className="text-[#3D81CC]">Agent Dashboard</span>
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30">
+              <div className="h-px w-12 bg-primary" aria-hidden="true"></div>
+              <span className="text-primary">Agent Dashboard</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-sans font-black text-white uppercase tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-sans font-black text-foreground uppercase tracking-tight">
               Your Agents
             </h1>
-            <p className="font-sans text-sm text-white/50 font-light max-w-lg">
+            <p className="font-sans text-sm text-foreground/50 font-light max-w-lg">
               Manage and deploy your AI assistants from here.
             </p>
           </div>
@@ -131,20 +131,20 @@ function MyAgents() {
       {/* Metrics */}
       {!manager.showCreate && (
         <section aria-label="Agent statistics" className="grid grid-cols-1 md:grid-cols-3 gap-4 border-none">
-          <div className="bg-[#0a0a0a] p-8 hover:bg-[#111] transition-colors">
-            <p className="font-mono text-[10px] text-white/30 tracking-widest uppercase mb-4">01 — Total Agents</p>
-            <p className="font-sans text-3xl font-black text-white">{totalAgentsCount}</p>
-            <p className="font-mono text-[10px] text-[#3D81CC] mt-2">{activeAgentsCount} active</p>
+          <div className="bg-card p-8 hover:bg-secondary transition-colors">
+            <p className="font-mono text-[10px] text-foreground/30 tracking-widest uppercase mb-4">01 — Total Agents</p>
+            <p className="font-sans text-3xl font-black text-foreground">{totalAgentsCount}</p>
+            <p className="font-mono text-[10px] text-primary mt-2">{activeAgentsCount} active</p>
           </div>
-          <div className="bg-[#0a0a0a] p-8 hover:bg-[#111] transition-colors">
-            <p className="font-mono text-[10px] text-white/30 tracking-widest uppercase mb-4">02 — Active Agents</p>
-            <p className="font-sans text-3xl font-black text-white">{activeAgentsCount}</p>
-            <p className="font-mono text-[10px] text-[#3D81CC] mt-2">{activeAgentsCount} online</p>
+          <div className="bg-card p-8 hover:bg-secondary transition-colors">
+            <p className="font-mono text-[10px] text-foreground/30 tracking-widest uppercase mb-4">02 — Active Agents</p>
+            <p className="font-sans text-3xl font-black text-foreground">{activeAgentsCount}</p>
+            <p className="font-mono text-[10px] text-primary mt-2">{activeAgentsCount} online</p>
           </div>
-          <div className="bg-[#0a0a0a] p-8 hover:bg-[#111] transition-colors">
-            <p className="font-mono text-[10px] text-white/30 tracking-widest uppercase mb-4">03 — Draft Agents</p>
-            <p className="font-sans text-3xl font-black text-white">{totalAgentsCount - activeAgentsCount}</p>
-            <p className="font-mono text-[10px] text-white/40 mt-2">Awaiting deployment</p>
+          <div className="bg-card p-8 hover:bg-secondary transition-colors">
+            <p className="font-mono text-[10px] text-foreground/30 tracking-widest uppercase mb-4">03 — Draft Agents</p>
+            <p className="font-sans text-3xl font-black text-foreground">{totalAgentsCount - activeAgentsCount}</p>
+            <p className="font-mono text-[10px] text-foreground/40 mt-2">Awaiting deployment</p>
           </div>
         </section>
       )}
@@ -161,10 +161,10 @@ function MyAgents() {
       ) : (
         <section className="space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
-            <h2 className="font-sans font-black text-lg text-white uppercase tracking-tight">All Agents</h2>
+            <h2 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">All Agents</h2>
             <div className="flex flex-wrap items-center gap-3">
               {/* Status Filter */}
-              <div className="flex gap-px border border-white/10" role="radiogroup" aria-label="Filter by status">
+              <div className="flex gap-px border border-border" role="radiogroup" aria-label="Filter by status">
                 {(['all', 'active', 'draft'] as const).map((filter) => (
                   <button
                     key={filter}
@@ -173,8 +173,8 @@ function MyAgents() {
                     aria-checked={statusFilter === filter}
                     className={`px-4 py-2 font-mono text-[10px] uppercase tracking-widest transition-colors border-none cursor-pointer ${
                       statusFilter === filter
-                        ? 'bg-[#3D81CC] text-white'
-                        : 'bg-[#0a0a0a] text-white/30 hover:text-white hover:bg-[#111]'
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card text-foreground/30 hover:text-foreground hover:bg-secondary'
                     }`}
                   >
                     {filter}
@@ -186,7 +186,7 @@ function MyAgents() {
               <button
                 onClick={() => setSortBy(sortBy === 'name' ? 'date' : 'name')}
                 aria-label={`Sort by ${sortBy === 'name' ? 'date' : 'name'}`}
-                className="flex items-center gap-2 px-4 py-2 font-mono text-[10px] uppercase tracking-widest bg-[#0a0a0a] text-white/30 hover:text-white border border-white/10 transition-colors cursor-pointer hover:bg-[#111]"
+                className="flex items-center gap-2 px-4 py-2 font-mono text-[10px] uppercase tracking-widest bg-card text-foreground/30 hover:text-foreground border border-border transition-colors cursor-pointer hover:bg-secondary"
               >
                 <ArrowUpDown className="h-3 w-3" />
                 {sortBy === 'name' ? 'A–Z' : 'Recent'}
@@ -195,11 +195,11 @@ function MyAgents() {
               {/* Search */}
               <div className="relative hidden md:block">
                 <label htmlFor="agent-search" className="sr-only">Filter agents</label>
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20" aria-hidden="true" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-foreground/20" aria-hidden="true" />
                 <input
                   id="agent-search"
                   placeholder="Filter agents..."
-                  className="pl-10 w-48 h-10 bg-transparent border border-white/10 font-mono text-xs text-white focus:border-[#3D81CC] focus:outline-none transition-colors placeholder:text-white/20 px-3"
+                  className="pl-10 w-48 h-10 bg-transparent border border-border font-mono text-xs text-foreground focus:border-primary focus:outline-none transition-colors placeholder:text-foreground/20 px-3"
                   value={manager.search}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => manager.setSearch(e.target.value)}
                 />
@@ -208,20 +208,20 @@ function MyAgents() {
           </div>
 
           {/* Results count */}
-          <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest" aria-live="polite">
+          <p className="font-mono text-[10px] text-foreground/20 uppercase tracking-widest" aria-live="polite">
             {processedAgents.length} agent{processedAgents.length !== 1 ? 's' : ''} found
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 border-none">
             {processedAgents.length === 0 ? (
-              <div className="col-span-full bg-[#0a0a0a] p-16 text-center space-y-6">
-                <p className="font-mono text-[10px] text-white/20 tracking-widest uppercase">
+              <div className="col-span-full bg-card p-16 text-center space-y-6">
+                <p className="font-mono text-[10px] text-foreground/20 tracking-widest uppercase">
                   {statusFilter !== 'all' ? `No ${statusFilter} agents` : 'No agents deployed'}
                 </p>
-                <h3 className="text-2xl font-sans font-black text-white uppercase">
+                <h3 className="text-2xl font-sans font-black text-foreground uppercase">
                   {statusFilter !== 'all' ? 'Try a different filter' : 'Create Your First Agent'}
                 </h3>
-                <p className="font-sans text-sm text-white/40 font-light max-w-sm mx-auto">
+                <p className="font-sans text-sm text-foreground/40 font-light max-w-sm mx-auto">
                   {statusFilter !== 'all'
                     ? 'Change the filter to see other agents.'
                     : 'Build your first AI assistant to start automating tasks and workflows.'}

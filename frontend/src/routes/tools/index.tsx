@@ -273,7 +273,7 @@ function ToolsPage() {
 
   if (isLoading)
     return (
-      <div className="p-12 text-center font-mono text-xs text-white/30 uppercase tracking-widest animate-pulse">
+      <div className="p-12 text-center font-mono text-xs text-foreground/30 uppercase tracking-widest animate-pulse">
         Loading tools...
       </div>
     );
@@ -289,14 +289,14 @@ function ToolsPage() {
       <header className="space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30">
-              <div className="h-px w-12 bg-[#3D81CC]" aria-hidden="true"></div>
-              <span className="text-[#3D81CC]">API Integrations</span>
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30">
+              <div className="h-px w-12 bg-primary" aria-hidden="true"></div>
+              <span className="text-primary">API Integrations</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-sans font-black text-white uppercase tracking-tight">
+            <h1 className="text-4xl md:text-5xl font-sans font-black text-foreground uppercase tracking-tight">
               Custom Tools
             </h1>
-            <p className="font-sans text-sm text-white/50 font-light max-w-lg">
+            <p className="font-sans text-sm text-foreground/50 font-light max-w-lg">
               Define external API connections for your agents to use.
             </p>
           </div>
@@ -315,16 +315,16 @@ function ToolsPage() {
 
       {showCreate ? (
         /* ==================== CREATE / EDIT FORM ==================== */
-        <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-          <div className="p-8 border-b border-white/10">
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30 mb-4">
-              <div className="h-px w-12 bg-[#3D81CC]" aria-hidden="true"></div>
-              <span className="text-[#3D81CC]">{editingToolId ? 'Edit Tool' : 'New Tool'}</span>
+        <div className="bg-card border border-border overflow-hidden">
+          <div className="p-8 border-b border-border">
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30 mb-4">
+              <div className="h-px w-12 bg-primary" aria-hidden="true"></div>
+              <span className="text-primary">{editingToolId ? 'Edit Tool' : 'New Tool'}</span>
             </div>
-            <h2 className="font-sans font-black text-2xl text-white uppercase tracking-tight">
+            <h2 className="font-sans font-black text-2xl text-foreground uppercase tracking-tight">
               Configure Tool
             </h2>
-            <p className="font-sans text-sm text-white/40 font-light mt-2">
+            <p className="font-sans text-sm text-foreground/40 font-light mt-2">
               Give your agents the ability to interface with external APIs.
             </p>
           </div>
@@ -338,7 +338,7 @@ function ToolsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label htmlFor="tool-name" className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  <label htmlFor="tool-name" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                     Name
                   </label>
                   <Input
@@ -348,12 +348,12 @@ function ToolsPage() {
                     onChange={(e) => setName(e.target.value.replace(/[^a-zA-Z0-9_]/g, '_'))}
                     required
                   />
-                  <p className="font-mono text-[9px] text-white/20 tracking-widest uppercase">
+                  <p className="font-mono text-[9px] text-foreground/20 tracking-widest uppercase">
                     Only letters, numbers, and underscores.
                   </p>
                 </div>
                 <div className="space-y-3">
-                  <label htmlFor="tool-description" className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  <label htmlFor="tool-description" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                     Description
                   </label>
                   <Input
@@ -368,7 +368,7 @@ function ToolsPage() {
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="space-y-3 col-span-2">
-                  <label htmlFor="tool-url" className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  <label htmlFor="tool-url" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                     API URL
                   </label>
                   <Input
@@ -379,12 +379,12 @@ function ToolsPage() {
                     onChange={(e) => setUrl(e.target.value)}
                     required
                   />
-                  <p className="font-mono text-[9px] text-white/20 tracking-widest uppercase">
+                  <p className="font-mono text-[9px] text-foreground/20 tracking-widest uppercase">
                     Use {'{paramName}'} to inject variables into the path.
                   </p>
                 </div>
                 <div className="space-y-3">
-                  <label htmlFor="tool-method" className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  <label htmlFor="tool-method" className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                     Method
                   </label>
                   <Select
@@ -411,13 +411,13 @@ function ToolsPage() {
               </div>
 
               {/* Parameters Section */}
-              <div className="space-y-4 pt-6 border-t border-white/10">
+              <div className="space-y-4 pt-6 border-t border-border">
                 <div className="flex items-center justify-between">
                   <div>
-                    <label className="font-mono text-xs text-white tracking-widest uppercase flex items-center gap-2">
-                      <Braces className="h-4 w-4 text-[#3D81CC]" /> Parameters
+                    <label className="font-mono text-xs text-foreground tracking-widest uppercase flex items-center gap-2">
+                      <Braces className="h-4 w-4 text-primary" /> Parameters
                     </label>
-                    <p className="font-mono text-[9px] text-white/30 tracking-widest uppercase mt-1">
+                    <p className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase mt-1">
                       Configure headers, query string, or body arguments.
                     </p>
                   </div>
@@ -436,7 +436,7 @@ function ToolsPage() {
                   {parameters.map((param, index) => (
                     <div
                       key={index}
-                      className="flex flex-col gap-3 p-4 bg-[#111] border border-white/10 relative group"
+                      className="flex flex-col gap-3 p-4 bg-secondary border border-border relative group"
                     >
                       <div className="flex flex-wrap md:flex-nowrap gap-3 w-full pr-8">
                         <Select
@@ -444,7 +444,7 @@ function ToolsPage() {
                           onChange={(e) =>
                             updateParameter(index, { location: e.target.value as ParamLocation })
                           }
-                          className="w-[110px] border border-white/10 bg-[#0a0a0a] px-2"
+                          className="w-[110px] border border-border bg-card px-2"
                           disabled={param.location === 'path'}
                           aria-label={`Parameter ${index + 1} location`}
                         >
@@ -464,7 +464,7 @@ function ToolsPage() {
                               name: e.target.value.replace(/[^a-zA-Z0-9_-]/g, ''),
                             })
                           }
-                          className="flex-1 min-w-[150px] border-b border-white/10"
+                          className="flex-1 min-w-[150px] border-b border-border"
                           disabled={param.location === 'path'}
                           required
                           aria-label={`Parameter ${index + 1} name`}
@@ -473,7 +473,7 @@ function ToolsPage() {
                         <Select
                           value={param.type}
                           onChange={(e) => updateParameter(index, { type: e.target.value })}
-                          className="w-[110px] border border-white/10 bg-[#0a0a0a] px-2"
+                          className="w-[110px] border border-border bg-card px-2"
                           aria-label={`Parameter ${index + 1} type`}
                         >
                           <option value="string">String</option>
@@ -486,7 +486,7 @@ function ToolsPage() {
                           placeholder="Instructions for the agent"
                           value={param.description}
                           onChange={(e) => updateParameter(index, { description: e.target.value })}
-                          className="flex-[2] min-w-[200px] border-b border-white/10"
+                          className="flex-[2] min-w-[200px] border-b border-border"
                           required
                           aria-label={`Parameter ${index + 1} description`}
                         />
@@ -502,7 +502,7 @@ function ToolsPage() {
                           />
                           <label
                             htmlFor={`req-${index}`}
-                            className="font-mono text-[9px] text-white/30 cursor-pointer uppercase tracking-widest"
+                            className="font-mono text-[9px] text-foreground/30 cursor-pointer uppercase tracking-widest"
                           >
                             Req
                           </label>
@@ -531,7 +531,7 @@ function ToolsPage() {
                             onClick={() => removeParameter(index)}
                             disabled={param.location === 'path'}
                             aria-label={`Remove parameter ${param.name || index + 1}`}
-                            className="h-8 w-8 text-white/20 hover:text-red-400 absolute right-2 top-3 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all disabled:hidden bg-transparent border-none cursor-pointer flex items-center justify-center"
+                            className="h-8 w-8 text-foreground/20 hover:text-red-400 absolute right-2 top-3 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-all disabled:hidden bg-transparent border-none cursor-pointer flex items-center justify-center"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
@@ -541,8 +541,8 @@ function ToolsPage() {
                     </div>
                   ))}
                   {parameters.length === 0 && (
-                    <div className="text-center p-8 border border-dashed border-white/10 bg-[#111]">
-                      <p className="font-mono text-xs text-white/30">
+                    <div className="text-center p-8 border border-dashed border-border bg-secondary">
+                      <p className="font-mono text-xs text-foreground/30">
                         No parameters defined. The tool will not require any arguments.
                       </p>
                     </div>
@@ -550,7 +550,7 @@ function ToolsPage() {
                 </div>
               </div>
             </div>
-            <div className="p-8 border-t border-white/10 flex gap-4">
+            <div className="p-8 border-t border-border flex gap-4">
               <Button
                 type="button"
                 variant="ghost"
@@ -573,7 +573,7 @@ function ToolsPage() {
       ) : (
         /* ==================== TOOL LIST ==================== */
         <>
-          <p className="font-mono text-[10px] text-white/20 uppercase tracking-widest" aria-live="polite">
+          <p className="font-mono text-[10px] text-foreground/20 uppercase tracking-widest" aria-live="polite">
             {toolsList.length} tool{toolsList.length !== 1 ? 's' : ''} configured
           </p>
 
@@ -582,16 +582,16 @@ function ToolsPage() {
               <article
                 key={tool.toolId}
                 aria-label={`Tool: ${tool.name}`}
-                className="bg-[#0a0a0a] border border-white/10 p-8 hover:bg-[#111] transition-all duration-200 group cursor-pointer flex flex-col min-h-[240px] relative hover:-translate-y-0.5 hover:shadow-lg hover:shadow-[#3D81CC]/5"
+                className="bg-card border border-border p-8 hover:bg-secondary transition-all duration-200 group cursor-pointer flex flex-col min-h-[240px] relative hover:-translate-y-0.5 hover:shadow-lg hover:shadow-primary/5"
                 tabIndex={0}
                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleEdit(e as any, tool); } }}
               >
                 {/* Left accent bar */}
-                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#3D81CC] opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
+                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary opacity-0 group-hover:opacity-100 transition-opacity" aria-hidden="true" />
 
                 <div className="flex justify-between items-start mb-6">
-                  <div className="w-10 h-10 bg-[#3D81CC]/10 flex items-center justify-center group-hover:bg-[#3D81CC]/20 transition-colors" aria-hidden="true">
-                    <Wrench className="h-5 w-5 text-[#3D81CC]" />
+                  <div className="w-10 h-10 bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors" aria-hidden="true">
+                    <Wrench className="h-5 w-5 text-primary" />
                   </div>
                   <div className="flex gap-2">
                     <Tooltip>
@@ -599,7 +599,7 @@ function ToolsPage() {
                         <button
                           onClick={(e) => handleEdit(e, tool)}
                           aria-label={`Edit ${tool.name}`}
-                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-[#3D81CC] transition-all h-8 w-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-white/30"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-primary transition-all h-8 w-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-foreground/30"
                         >
                           <Code className="h-4 w-4" />
                         </button>
@@ -611,7 +611,7 @@ function ToolsPage() {
                         <button
                           onClick={(e) => handleDelete(e, tool.toolId)}
                           aria-label={`Delete ${tool.name}`}
-                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-400 transition-all h-8 w-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-white/30"
+                          className="opacity-0 group-hover:opacity-100 focus:opacity-100 hover:text-red-400 transition-all h-8 w-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-foreground/30"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -621,18 +621,18 @@ function ToolsPage() {
                   </div>
                 </div>
 
-                <h3 className="font-sans font-black text-xl text-white group-hover:text-[#3D81CC] transition-colors mb-2 uppercase tracking-tight truncate">
+                <h3 className="font-sans font-black text-xl text-foreground group-hover:text-primary transition-colors mb-2 uppercase tracking-tight truncate">
                   {tool.name}
                 </h3>
-                <p className="font-sans text-xs text-white/40 font-light leading-relaxed line-clamp-2 min-h-[32px]">
+                <p className="font-sans text-xs text-foreground/40 font-light leading-relaxed line-clamp-2 min-h-[32px]">
                   {tool.description}
                 </p>
 
                 <div className="mt-auto pt-4">
-                  <div className="p-3 bg-[#111] border border-white/10 overflow-hidden">
+                  <div className="p-3 bg-secondary border border-border overflow-hidden">
                     <div className="flex items-center gap-3 font-mono text-[10px]">
-                      <span className="font-bold text-white/50 uppercase bg-white/5 px-2 py-0.5">{tool.method}</span>
-                      <span className="text-[#3D81CC] truncate">{tool.url}</span>
+                      <span className="font-bold text-foreground/50 uppercase bg-foreground/5 px-2 py-0.5">{tool.method}</span>
+                      <span className="text-primary truncate">{tool.url}</span>
                     </div>
                   </div>
                 </div>
@@ -640,10 +640,10 @@ function ToolsPage() {
             ))}
 
             {toolsList.length === 0 && (
-              <div className="col-span-full bg-[#0a0a0a] p-20 text-center space-y-6">
-                <Wrench className="h-12 w-12 mx-auto text-white/10" aria-hidden="true" />
-                <h3 className="font-sans font-black text-2xl text-white uppercase">No Custom Tools</h3>
-                <p className="font-sans text-sm text-white/40 font-light max-w-sm mx-auto">
+              <div className="col-span-full bg-card p-20 text-center space-y-6">
+                <Wrench className="h-12 w-12 mx-auto text-foreground/10" aria-hidden="true" />
+                <h3 className="font-sans font-black text-2xl text-foreground uppercase">No Custom Tools</h3>
+                <p className="font-sans text-sm text-foreground/40 font-light max-w-sm mx-auto">
                   Create tools to let your agents interface with the real world.
                 </p>
                 <Button

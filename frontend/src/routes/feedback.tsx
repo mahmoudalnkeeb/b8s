@@ -37,13 +37,13 @@ function FeedbackPage() {
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="bg-[#0a0a0a] border border-white/10 p-12 text-center max-w-lg"
+          className="bg-card border border-border p-12 text-center max-w-lg"
         >
-          <CheckCircle2 className="h-16 w-16 text-[#3D81CC] mx-auto mb-6" />
-          <h2 className="font-sans font-black text-2xl text-white uppercase tracking-tight mb-4">
+          <CheckCircle2 className="h-16 w-16 text-primary mx-auto mb-6" />
+          <h2 className="font-sans font-black text-2xl text-foreground uppercase tracking-tight mb-4">
             Feedback Received
           </h2>
-          <p className="font-sans text-sm text-white/50 font-light mb-8">
+          <p className="font-sans text-sm text-foreground/50 font-light mb-8">
             Thank you for helping shape the early stages of Blueprints. Your input is extremely valuable to us.
           </p>
           <button
@@ -51,7 +51,7 @@ function FeedbackPage() {
               setIsSubmitted(false);
               setContent('');
             }}
-            className="bg-[#3D81CC] text-white font-mono text-[10px] uppercase tracking-widest px-6 py-3 hover:bg-white hover:text-black transition-colors cursor-pointer border-none"
+            className="bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest px-6 py-3 hover:bg-foreground hover:text-background transition-colors cursor-pointer border-none"
           >
             Submit Another
           </button>
@@ -68,21 +68,21 @@ function FeedbackPage() {
       className="max-w-4xl mx-auto py-12 px-6 space-y-10"
     >
       <div className="space-y-4">
-        <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30">
-          <div className="h-px w-12 bg-[#3D81CC]"></div>
-          <span className="text-[#3D81CC]">Early Access Team</span>
+        <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30">
+          <div className="h-px w-12 bg-primary"></div>
+          <span className="text-primary">Early Access Team</span>
         </div>
-        <h1 className="text-4xl md:text-5xl font-sans font-black text-white uppercase tracking-tight">
+        <h1 className="text-4xl md:text-5xl font-sans font-black text-foreground uppercase tracking-tight">
           Feedback
         </h1>
-        <p className="font-sans text-sm text-white/50 font-light">
+        <p className="font-sans text-sm text-foreground/50 font-light">
           Blueprints is still in active development. Please report any bugs or suggest features you'd like to see next.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-px border border-white/10 bg-white/10">
-        <div className="bg-[#0a0a0a] p-8 hover:bg-[#111] transition-colors">
-          <label className="block font-sans font-black text-lg text-white uppercase tracking-tight mb-6">
+      <form onSubmit={handleSubmit} className="space-y-px border border-border bg-foreground/10">
+        <div className="bg-card p-8 hover:bg-secondary transition-colors">
+          <label className="block font-sans font-black text-lg text-foreground uppercase tracking-tight mb-6">
             Type of Feedback
           </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -92,13 +92,13 @@ function FeedbackPage() {
               className={`flex items-center gap-4 p-4 border transition-colors cursor-pointer text-left ${
                 type === 'bug'
                   ? 'border-red-500/50 bg-red-500/10'
-                  : 'border-white/10 hover:border-white/20 hover:bg-white/5 bg-black'
+                  : 'border-border hover:border-foreground/20 hover:bg-foreground/5 bg-background'
               }`}
             >
-              <MessageCircleWarning className={`h-6 w-6 ${type === 'bug' ? 'text-red-400' : 'text-white/40'}`} />
+              <MessageCircleWarning className={`h-6 w-6 ${type === 'bug' ? 'text-red-400' : 'text-foreground/40'}`} />
               <div>
-                <div className={`font-sans font-bold uppercase tracking-widest text-sm ${type === 'bug' ? 'text-red-400' : 'text-white'}`}>Report a Bug</div>
-                <div className="font-sans text-xs text-white/40 mt-1">Something is broken or not working as expected.</div>
+                <div className={`font-sans font-bold uppercase tracking-widest text-sm ${type === 'bug' ? 'text-red-400' : 'text-foreground'}`}>Report a Bug</div>
+                <div className="font-sans text-xs text-foreground/40 mt-1">Something is broken or not working as expected.</div>
               </div>
             </button>
             <button
@@ -106,31 +106,31 @@ function FeedbackPage() {
               onClick={() => setType('suggestion')}
               className={`flex items-center gap-4 p-4 border transition-colors cursor-pointer text-left ${
                 type === 'suggestion'
-                  ? 'border-[#3D81CC]/50 bg-[#3D81CC]/10'
-                  : 'border-white/10 hover:border-white/20 hover:bg-white/5 bg-black'
+                  ? 'border-primary/50 bg-primary/10'
+                  : 'border-border hover:border-foreground/20 hover:bg-foreground/5 bg-background'
               }`}
             >
-              <Lightbulb className={`h-6 w-6 ${type === 'suggestion' ? 'text-[#3D81CC]' : 'text-white/40'}`} />
+              <Lightbulb className={`h-6 w-6 ${type === 'suggestion' ? 'text-primary' : 'text-foreground/40'}`} />
               <div>
-                <div className={`font-sans font-bold uppercase tracking-widest text-sm ${type === 'suggestion' ? 'text-[#3D81CC]' : 'text-white'}`}>Feature Suggestion</div>
-                <div className="font-sans text-xs text-white/40 mt-1">I have a great idea to make Blueprints better.</div>
+                <div className={`font-sans font-bold uppercase tracking-widest text-sm ${type === 'suggestion' ? 'text-primary' : 'text-foreground'}`}>Feature Suggestion</div>
+                <div className="font-sans text-xs text-foreground/40 mt-1">I have a great idea to make Blueprints better.</div>
               </div>
             </button>
           </div>
         </div>
 
-        <div className="bg-[#0a0a0a] p-8 hover:bg-[#111] transition-colors">
-          <label className="block font-sans font-black text-lg text-white uppercase tracking-tight mb-4">
+        <div className="bg-card p-8 hover:bg-secondary transition-colors">
+          <label className="block font-sans font-black text-lg text-foreground uppercase tracking-tight mb-4">
             Details
           </label>
-          <p className="font-sans text-sm text-white/40 font-light mb-4">
+          <p className="font-sans text-sm text-foreground/40 font-light mb-4">
             Please be as descriptive as possible. If it's a bug, include steps to reproduce.
           </p>
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder={type === 'bug' ? "What went wrong? Steps to reproduce..." : "It would be amazing if..."}
-            className="w-full bg-black border border-white/10 text-white font-sans text-sm px-4 py-3 min-h-[160px] focus:outline-none focus:border-[#3D81CC] transition-colors resize-y mb-6 placeholder-white/20"
+            className="w-full bg-background border border-border text-foreground font-sans text-sm px-4 py-3 min-h-[160px] focus:outline-none focus:border-primary transition-colors resize-y mb-6 placeholder-white/20"
             required
             minLength={10}
           />
@@ -138,7 +138,7 @@ function FeedbackPage() {
             <button
               type="submit"
               disabled={submitFeedback.isPending || content.length < 10}
-              className="bg-[#3D81CC] text-white font-mono text-[10px] uppercase tracking-widest px-8 py-3 hover:bg-white hover:text-black transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer"
+              className="bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest px-8 py-3 hover:bg-foreground hover:text-background transition-colors disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer"
             >
               {submitFeedback.isPending ? 'Submitting...' : 'Submit Feedback'}
             </button>

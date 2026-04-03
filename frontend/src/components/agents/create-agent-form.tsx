@@ -18,16 +18,16 @@ export interface CreateAgentFormProps {
 
 export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSubmit, onCancel }: CreateAgentFormProps) => {
   return (
-    <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-      <div className="p-8 border-b border-white/10">
-        <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-white/30 mb-4">
-          <div className="h-px w-12 bg-[#3D81CC]"></div>
-          <span className="text-[#3D81CC]">New Agent</span>
+    <div className="bg-card border border-border overflow-hidden">
+      <div className="p-8 border-b border-border">
+        <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-foreground/30 mb-4">
+          <div className="h-px w-12 bg-primary"></div>
+          <span className="text-primary">New Agent</span>
         </div>
-        <h2 className="font-sans font-black text-2xl text-white uppercase tracking-tight">
+        <h2 className="font-sans font-black text-2xl text-foreground uppercase tracking-tight">
           Configure Assistant
         </h2>
-        <p className="font-sans text-sm text-white/40 font-light mt-2">
+        <p className="font-sans text-sm text-foreground/40 font-light mt-2">
           Define the identity and capabilities of your agent.
         </p>
       </div>
@@ -35,7 +35,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
         <div className="p-8 space-y-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-3">
-              <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+              <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                 Name
               </label>
               <Input
@@ -46,7 +46,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
               />
             </div>
             <div className="space-y-3">
-              <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+              <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                 Visibility
               </label>
               <Select
@@ -60,7 +60,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
           </div>
 
           <div className="space-y-3">
-            <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+            <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
               Description
             </label>
             <Input
@@ -71,7 +71,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
           </div>
 
           <div className="space-y-3">
-            <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+            <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
               Core Instructions
             </label>
             <Textarea
@@ -84,7 +84,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
           </div>
 
           <div className="space-y-6">
-            <div className="flex flex-wrap gap-8 p-6 border border-white/10 bg-[#111]">
+            <div className="flex flex-wrap gap-8 p-6 border border-border bg-secondary">
               <div className="flex items-center space-x-3 cursor-pointer">
                 <Checkbox
                   id="memory"
@@ -92,10 +92,10 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
                   onCheckedChange={(checked) => state.setMemoryEnabled(!!checked)}
                 />
                 <div className="space-y-0.5">
-                  <label htmlFor="memory" className="font-mono text-xs text-white cursor-pointer">
+                  <label htmlFor="memory" className="font-mono text-xs text-foreground cursor-pointer">
                     B8s Memory
                   </label>
-                  <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                  <p className="font-mono text-[9px] text-foreground/30 uppercase tracking-widest">
                     Store and recall facts
                   </p>
                 </div>
@@ -107,10 +107,10 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
                   onCheckedChange={(checked) => state.setRagEnabled(!!checked)}
                 />
                 <div className="space-y-0.5">
-                  <label htmlFor="rag" className="font-mono text-xs text-white cursor-pointer">
+                  <label htmlFor="rag" className="font-mono text-xs text-foreground cursor-pointer">
                     Knowledge Base
                   </label>
-                  <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                  <p className="font-mono text-[9px] text-foreground/30 uppercase tracking-widest">
                     Document grounding
                   </p>
                 </div>
@@ -118,9 +118,9 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
             </div>
 
             {state.memoryEnabled && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border border-white/10 bg-[#111]">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-6 border border-border bg-secondary">
                 <div className="space-y-3">
-                  <label className="font-mono text-[9px] text-white/30 tracking-widest uppercase flex items-center gap-2">
+                  <label className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase flex items-center gap-2">
                     <Eye className="h-3 w-3" /> Read Access
                   </label>
                   <Select
@@ -133,7 +133,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
                   </Select>
                 </div>
                 <div className="space-y-3">
-                  <label className="font-mono text-[9px] text-white/30 tracking-widest uppercase flex items-center gap-2">
+                  <label className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase flex items-center gap-2">
                     <PenTool className="h-3 w-3" /> Write Access
                   </label>
                   <Select
@@ -147,27 +147,27 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
               </div>
             )}
 
-            <div className="space-y-4 pt-4 border-t border-white/10">
+            <div className="space-y-4 pt-4 border-t border-border">
               <div className="space-y-1">
-                <label className="font-mono text-xs text-white tracking-widest uppercase">
+                <label className="font-mono text-xs text-foreground tracking-widest uppercase">
                   Custom Tools
                 </label>
-                <p className="font-mono text-[9px] text-white/30 tracking-widest uppercase">
+                <p className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase">
                   External tools this agent can invoke.
                 </p>
               </div>
 
               {toolsList.length === 0 ? (
-                <div className="p-6 border border-dashed border-white/10 bg-[#111] text-center">
-                  <p className="font-mono text-xs text-white/30">
+                <div className="p-6 border border-dashed border-border bg-secondary text-center">
+                  <p className="font-mono text-xs text-foreground/30">
                     No custom tools created yet.
                   </p>
-                  <Button variant="link" asChild className="mt-2 h-auto p-0 text-[#3D81CC]">
+                  <Button variant="link" asChild className="mt-2 h-auto p-0 text-primary">
                     <Link to="/tools">Manage Tools</Link>
                   </Button>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-foreground/10 border border-border">
                   {toolsList.map((tool: any, index: number) => {
                     const isChecked = tool.toolId ? state.selectedTools.includes(tool.toolId) : false;
                     const elementId = `tool-${tool.toolId || index}`;
@@ -178,8 +178,8 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
                         className={cn(
                           'p-4 transition-all cursor-pointer flex items-start gap-3',
                           isChecked
-                            ? 'bg-[#3D81CC]/10'
-                            : 'bg-[#0a0a0a] hover:bg-[#111]'
+                            ? 'bg-primary/10'
+                            : 'bg-card hover:bg-secondary'
                         )}
                       >
                         <Checkbox
@@ -197,9 +197,9 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
                           className="mt-1"
                         />
                         <div className="space-y-1 min-w-0">
-                          <p className="font-mono text-xs text-white truncate">{tool.name}</p>
-                          <p className="font-mono text-[9px] text-white/30 truncate">{tool.description}</p>
-                          <span className="font-mono text-[8px] uppercase px-1.5 py-0.5 bg-white/5 text-white/40 tracking-widest">
+                          <p className="font-mono text-xs text-foreground truncate">{tool.name}</p>
+                          <p className="font-mono text-[9px] text-foreground/30 truncate">{tool.description}</p>
+                          <span className="font-mono text-[8px] uppercase px-1.5 py-0.5 bg-foreground/5 text-foreground/40 tracking-widest">
                             {tool.method}
                           </span>
                         </div>
@@ -211,7 +211,7 @@ export const CreateAgentForm = React.memo(({ state, toolsList, isCreating, onSub
             </div>
           </div>
         </div>
-        <div className="p-8 border-t border-white/10 flex justify-end gap-4">
+        <div className="p-8 border-t border-border flex justify-end gap-4">
           <Button type="button" variant="ghost" onClick={onCancel}>
             Cancel
           </Button>

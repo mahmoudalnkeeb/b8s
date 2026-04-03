@@ -17,6 +17,8 @@ import {
   BookOpen,
   Menu,
   X,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { useMyConversations, useDeleteConversation } from '../api/conversations';
 import { usePinnedAgents } from '../api/agents';
@@ -24,6 +26,7 @@ import { useBillingBalance } from '../api/billing';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { useAuth } from '../hooks/use-auth';
+import { useTheme } from '../hooks/use-theme';
 import { useState, useEffect } from 'react';
 import { useConfirm } from '@/components/ui/confirm-dialog';
 
@@ -33,6 +36,7 @@ export const Route = createRootRoute({
 
 function RootLayout() {
   const { isAuthenticated, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
@@ -104,8 +108,8 @@ function RootLayout() {
 
   const navItemClass = (isActive: boolean) =>
     cn(
-      'flex items-center gap-3 px-3 py-2.5 font-mono text-[10px] uppercase tracking-widest transition-colors text-white/40 hover:text-white hover:bg-white/5 no-underline',
-      isActive && 'text-white bg-[#3D81CC] hover:bg-[#3D81CC]',
+      'flex items-center gap-3 px-3 py-2.5 font-mono text-[10px] uppercase tracking-widest transition-colors text-foreground/40 hover:text-foreground hover:bg-foreground/5 no-underline',
+      isActive && 'text-primary-foreground bg-primary hover:bg-primary',
     );
 
   const navItems: Array<{ to: any; label: string; icon: any; isActive: boolean; isHighlight?: boolean }> = [
@@ -123,16 +127,16 @@ function RootLayout() {
 
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="flex h-screen w-full bg-black overflow-hidden text-white font-sans">
+      <div className="flex h-screen w-full bg-background overflow-hidden text-foreground font-sans">
         {/* Skip to content link */}
-        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-[#3D81CC] focus:text-white focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase">
+        <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[100] focus:bg-primary focus:text-primary-foreground focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase">
           Skip to content
         </a>
-        <Toaster theme="dark" position="bottom-right" richColors />
+        <Toaster theme={theme} position="bottom-right" richColors />
         {/* Mobile Overlay */}
         {showSidebar && isSidebarOpen && (
           <div 
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 md:hidden"
+            className="fixed inset-0 bg-black/60 dark:bg-black/60 backdrop-blur-sm z-40 md:hidden"
             onClick={() => setIsSidebarOpen(false)}
             aria-hidden="true"
           />
@@ -144,7 +148,7 @@ function RootLayout() {
             role="navigation"
             aria-label="Main navigation"
             className={cn(
-              'flex flex-col border-r border-white/10 bg-black transition-transform duration-300 z-50 shrink-0 h-full fixed md:relative',
+              'flex flex-col border-r border-border bg-background transition-transform duration-300 z-50 shrink-0 h-full fixed md:relative',
               isSidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full md:translate-x-0 md:w-16',
             )}
           >
@@ -154,7 +158,7 @@ function RootLayout() {
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
                   aria-label={isSidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-                  className="absolute -right-3 top-10 z-50 bg-[#0a0a0a] border border-white/10 p-1 hover:text-[#3D81CC] text-white/40 transition-colors hidden md:block"
+                  className="absolute -right-3 top-10 z-50 bg-card border border-border p-1 hover:text-primary text-foreground/40 transition-colors hidden md:block"
                 >
                   {isSidebarOpen ? (
                     <ChevronLeft className="h-3 w-3" />
@@ -175,17 +179,17 @@ function RootLayout() {
               )}
             >
               <Link to="/" className="flex items-center gap-3 no-underline" aria-label="Blueprints home">
-                <div className="bg-[#3D81CC] text-white font-black font-sans text-sm tracking-tighter w-10 h-10 flex items-center justify-center shrink-0">
+                <div className="bg-primary text-primary-foreground font-black font-sans text-sm tracking-tighter w-10 h-10 flex items-center justify-center shrink-0">
                   B8s
                 </div>
                 {isSidebarOpen && (
                   <>
-                    <span className="font-mono text-[10px] text-white/40 uppercase tracking-widest">
+                    <span className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest">
                       Blueprints
                     </span>
                     <button 
                       onClick={() => setIsSidebarOpen(false)}
-                      className="ml-auto p-1.5 md:hidden text-white/40 hover:text-white"
+                      className="ml-auto p-1.5 md:hidden text-foreground/40 hover:text-foreground"
                       aria-label="Close sidebar"
                     >
                       <X className="h-4 w-4" />
@@ -205,14 +209,14 @@ function RootLayout() {
                     aria-current={isActive ? 'page' : undefined}
                     className={cn(
                       navItemClass(isActive),
-                      isHighlight && !isActive && 'text-[#3D81CC]', // Highlight text if not active
+                      isHighlight && !isActive && 'text-primary',
                       !isSidebarOpen && 'justify-center px-0',
                     )}
                   >
-                    <Icon className={cn("h-4 w-4 shrink-0", isHighlight && !isActive && "text-[#3D81CC]")} />
+                    <Icon className={cn("h-4 w-4 shrink-0", isHighlight && !isActive && "text-primary")} />
                     <span className="flex-1">{label}</span>
                     {isHighlight && (
-                      <span className="text-[8px] bg-[#3D81CC]/20 text-[#3D81CC] px-1.5 py-0.5 ml-auto rounded font-bold tracking-widest uppercase">Beta</span>
+                      <span className="text-[8px] bg-primary/20 text-primary px-1.5 py-0.5 ml-auto rounded font-bold tracking-widest uppercase">Beta</span>
                     )}
                   </Link>
                 ) : (
@@ -224,11 +228,11 @@ function RootLayout() {
                         aria-current={isActive ? 'page' : undefined}
                         className={cn(
                           navItemClass(isActive),
-                          isHighlight && !isActive && 'text-[#3D81CC]',
+                          isHighlight && !isActive && 'text-primary',
                           'justify-center px-0',
                         )}
                       >
-                        <Icon className={cn("h-4 w-4 shrink-0", isHighlight && !isActive && "text-[#3D81CC]")} />
+                        <Icon className={cn("h-4 w-4 shrink-0", isHighlight && !isActive && "text-primary")} />
                       </Link>
                     </TooltipTrigger>
                     <TooltipContent side="right">{label}</TooltipContent>
@@ -237,8 +241,8 @@ function RootLayout() {
               ))}
 
               {isSidebarOpen && Array.isArray(pinnedAgents) && pinnedAgents.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-white/5" role="group" aria-label="Pinned agents">
-                  <p className="px-3 mb-3 font-mono text-[9px] font-bold uppercase tracking-widest text-[#3D81CC]/60 flex items-center gap-2">
+                <div className="mt-6 pt-6 border-t border-border" role="group" aria-label="Pinned agents">
+                  <p className="px-3 mb-3 font-mono text-[9px] font-bold uppercase tracking-widest text-primary/60 flex items-center gap-2">
                     <Pin className="h-3 w-3" /> Pinned — {pinnedAgents.length}
                   </p>
                   <div className="space-y-0.5">
@@ -247,11 +251,11 @@ function RootLayout() {
                         key={agent.agentId}
                         onClick={() => handlePinnedClick(agent.agentId)}
                         aria-label={`Chat with ${agent.name}`}
-                        className="flex items-center gap-3 px-3 py-2.5 w-full font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white hover:bg-[#3D81CC]/10 transition-all bg-transparent border-none cursor-pointer text-left group/pin relative"
+                        className="flex items-center gap-3 px-3 py-2.5 w-full font-mono text-[10px] uppercase tracking-widest text-foreground/40 hover:text-foreground hover:bg-primary/10 transition-all bg-transparent border-none cursor-pointer text-left group/pin relative"
                       >
-                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#3D81CC] opacity-0 group-hover/pin:opacity-100 transition-opacity" />
-                        <div className="w-6 h-6 bg-[#3D81CC]/10 flex items-center justify-center shrink-0 group-hover/pin:bg-[#3D81CC]/20 transition-colors">
-                          <Bot className="h-3 w-3 text-[#3D81CC]/60" />
+                        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary opacity-0 group-hover/pin:opacity-100 transition-opacity" />
+                        <div className="w-6 h-6 bg-primary/10 flex items-center justify-center shrink-0 group-hover/pin:bg-primary/20 transition-colors">
+                          <Bot className="h-3 w-3 text-primary/60" />
                         </div>
                         <span className="truncate">{agent.name}</span>
                       </button>
@@ -262,7 +266,7 @@ function RootLayout() {
 
               {isSidebarOpen && Array.isArray(recentConversations) && recentConversations.length > 0 && (
                 <div className="mt-8" role="group" aria-label="Recent conversations">
-                  <p className="px-3 mb-2 font-mono text-[9px] font-bold uppercase tracking-widest text-white/20">
+                  <p className="px-3 mb-2 font-mono text-[9px] font-bold uppercase tracking-widest text-foreground/20">
                     Recents
                   </p>
                   <div className="space-y-0.5">
@@ -271,7 +275,7 @@ function RootLayout() {
                         <Link
                           to="/chat/$conversationId"
                           params={{ conversationId: conv.conversationId }}
-                          className="flex items-center gap-3 px-3 py-2 font-mono text-[10px] text-white/30 hover:text-white hover:bg-white/5 transition-colors no-underline truncate pr-8"
+                          className="flex items-center gap-3 px-3 py-2 font-mono text-[10px] text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-colors no-underline truncate pr-8"
                           aria-label={`Resume chat: ${conv.agentName || 'Untitled Chat'}`}
                         >
                           <span className="truncate">
@@ -283,7 +287,7 @@ function RootLayout() {
                             <button
                               onClick={(e) => handleDeleteConversation(e, conv.conversationId)}
                               aria-label={`Delete conversation with ${conv.agentName || 'Untitled'}`}
-                              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 p-1 hover:text-red-400 transition-all bg-transparent border-none cursor-pointer text-white/30"
+                              className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover/item:opacity-100 p-1 hover:text-red-400 transition-all bg-transparent border-none cursor-pointer text-foreground/30"
                             >
                               <Trash2 className="h-3 w-3" />
                             </button>
@@ -298,31 +302,43 @@ function RootLayout() {
             </nav>
 
             {/* Profile Section */}
-            <div className="p-3 border-t border-white/10">
+            <div className="p-3 border-t border-border">
               <div
                 className={cn(
-                  'flex items-center gap-3 p-2 hover:bg-white/5 transition-colors',
+                  'flex items-center gap-3 p-2 hover:bg-foreground/5 transition-colors',
                   !isSidebarOpen && 'justify-center px-0',
                 )}
               >
-                <div className="h-8 w-8 bg-[#3D81CC] flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0 uppercase" aria-hidden="true">
+                <div className="h-8 w-8 bg-primary flex items-center justify-center text-[10px] font-mono font-bold text-primary-foreground shrink-0 uppercase" aria-hidden="true">
                   U
                 </div>
                 {isSidebarOpen && (
                   <>
                     <div className="flex-1 min-w-0">
-                      <p className="font-mono text-xs text-white truncate">User</p>
-                      <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                      <p className="font-mono text-xs text-foreground truncate">User</p>
+                      <p className="font-mono text-[9px] text-foreground/30 uppercase tracking-widest">
                         {billingData?.tier === 'none' ? 'No Plan' : `${billingData?.tier || '—'} · ${((billingData?.cuBalance || 0) + (billingData?.grantedCuBalance || 0)).toFixed(2)} CU`}
                       </p>
                     </div>
                     <div className="flex items-center gap-1">
                       <Tooltip>
                         <TooltipTrigger asChild>
+                          <button
+                            onClick={toggleTheme}
+                            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                            className="p-1 hover:text-primary text-foreground/30 transition-colors bg-transparent border-none cursor-pointer"
+                          >
+                            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
                           <Link
                             to="/settings"
                             aria-label="Settings"
-                            className="p-1 hover:text-[#3D81CC] text-white/30 transition-colors"
+                            className="p-1 hover:text-primary text-foreground/30 transition-colors"
                           >
                             <Settings className="h-4 w-4" />
                           </Link>
@@ -334,7 +350,7 @@ function RootLayout() {
                           <button
                             onClick={handleLogout}
                             aria-label="Log out"
-                            className="p-1 hover:text-red-400 text-white/30 transition-colors bg-transparent border-none cursor-pointer"
+                            className="p-1 hover:text-red-400 text-foreground/30 transition-colors bg-transparent border-none cursor-pointer"
                           >
                             <LogOut className="h-4 w-4" />
                           </button>
@@ -351,21 +367,28 @@ function RootLayout() {
 
         <main id="main-content" role="main" className="flex-1 flex flex-col overflow-hidden relative h-full">
           {showSidebar && (
-            <div className="md:hidden flex items-center justify-between p-4 border-b border-white/10 shrink-0 bg-black z-30">
+            <div className="md:hidden flex items-center justify-between p-4 border-b border-border shrink-0 bg-background z-30">
               <div className="flex items-center gap-3">
                 <button 
                   onClick={() => setIsSidebarOpen(true)} 
-                  className="p-1.5 -ml-1.5 hover:bg-white/10 rounded-md transition-colors text-white/60 hover:text-white"
+                  className="p-1.5 -ml-1.5 hover:bg-foreground/10 rounded-md transition-colors text-foreground/60 hover:text-foreground"
                   aria-label="Open sidebar"
                 >
                   <Menu className="h-5 w-5" />
                 </button>
-                <div className="bg-[#3D81CC] text-white font-black font-sans text-sm tracking-tighter w-8 h-8 flex items-center justify-center shrink-0">
+                <div className="bg-primary text-primary-foreground font-black font-sans text-sm tracking-tighter w-8 h-8 flex items-center justify-center shrink-0">
                   B8s
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <Link to="/agents" className="px-3 py-1.5 bg-white/10 hover:bg-[#3D81CC] text-white text-xs font-mono uppercase tracking-widest transition-colors border border-white/20 hover:border-[#3D81CC]">
+                <button
+                  onClick={toggleTheme}
+                  className="p-1.5 hover:bg-foreground/10 rounded-md transition-colors text-foreground/60 hover:text-foreground"
+                  aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+                >
+                  {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </button>
+                <Link to="/agents" className="px-3 py-1.5 bg-foreground/10 hover:bg-primary text-foreground hover:text-primary-foreground text-xs font-mono uppercase tracking-widest transition-colors border border-border hover:border-primary">
                   New Chat
                 </Link>
               </div>

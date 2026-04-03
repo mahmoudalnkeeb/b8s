@@ -202,18 +202,18 @@ function AgentDetail() {
             variant="ghost"
             size="icon"
             asChild
-            className="shrink-0 h-10 w-10 text-white/40 hover:text-white rounded-none hidden md:flex"
+            className="shrink-0 h-10 w-10 text-foreground/40 hover:text-foreground rounded-none hidden md:flex"
           >
             <Link to="/agents">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
           <div className="flex flex-col">
-            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-[#3D81CC] mb-2">
-              <div className="h-px w-8 bg-[#3D81CC]"></div>
+            <div className="flex items-center gap-4 font-mono text-[10px] uppercase tracking-widest text-primary mb-2">
+              <div className="h-px w-8 bg-primary"></div>
               <span>Edit Agent</span>
             </div>
-            <h2 className="font-sans font-black text-2xl text-white uppercase tracking-tight">
+            <h2 className="font-sans font-black text-2xl text-foreground uppercase tracking-tight">
               {name || 'Agent Setup'}
             </h2>
           </div>
@@ -226,8 +226,8 @@ function AgentDetail() {
             className={cn(
               'h-10 w-10 shrink-0 rounded-none transition-colors border',
               agentWithPin.isPinned
-                ? 'text-[#3D81CC] border-[#3D81CC]/30 bg-[#3D81CC]/10'
-                : 'text-white/40 border-white/10 hover:text-white hover:bg-white/5',
+                ? 'text-primary border-primary/30 bg-primary/10'
+                : 'text-foreground/40 border-border hover:text-foreground hover:bg-foreground/5',
             )}
           >
             {agentWithPin.isPinned ? <PinOff className="h-4 w-4" /> : <Pin className="h-4 w-4" />}
@@ -238,8 +238,8 @@ function AgentDetail() {
             className={cn(
               'h-10 rounded-none font-mono uppercase tracking-widest text-[10px] px-6 transition-colors',
               !agent.deployed
-                ? 'bg-[#3D81CC] hover:bg-[#3D81CC]/90 text-white'
-                : 'bg-white/10 text-white/40 cursor-not-allowed hidden',
+                ? 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                : 'bg-foreground/10 text-muted-foreground cursor-not-allowed hidden',
             )}
           >
             {deployAgent.isPending ? 'Deploying...' : agent.deployed ? 'Deployed' : 'Deploy Agent'}
@@ -247,7 +247,7 @@ function AgentDetail() {
           <Button
             onClick={handleUpdate}
             disabled={updateAgent.isPending}
-            className="h-10 rounded-none bg-white font-mono uppercase tracking-widest text-[10px] text-black hover:bg-white/90 px-6 shrink-0"
+            className="h-10 rounded-none bg-foreground font-mono uppercase tracking-widest text-[10px] text-black hover:bg-foreground/90 px-6 shrink-0"
           >
             {updateAgent.isPending ? 'Saving...' : 'Save Changes'}
           </Button>
@@ -256,10 +256,10 @@ function AgentDetail() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-            <div className="p-6 border-b border-white/10 flex items-center gap-3">
-              <Brain className="h-5 w-5 text-[#3D81CC]" />
-              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
+          <div className="bg-card border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center gap-3">
+              <Brain className="h-5 w-5 text-primary" />
+              <h3 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">
                 Configuration
               </h3>
             </div>
@@ -267,7 +267,7 @@ function AgentDetail() {
             <div className="p-8 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                     Name
                   </label>
                   <Input
@@ -275,12 +275,12 @@ function AgentDetail() {
                     onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
                     placeholder="e.g. Senior Researcher"
                   />
-                  <p className="font-mono text-[9px] text-white/20 uppercase tracking-widest">
+                  <p className="font-mono text-[9px] text-foreground/20 uppercase tracking-widest">
                     ID: {agent.agentId}
                   </p>
                 </div>
                 <div className="space-y-3">
-                  <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                  <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                     Visibility
                   </label>
                   <Select
@@ -296,7 +296,7 @@ function AgentDetail() {
               </div>
 
               <div className="space-y-3">
-                <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                   Description
                 </label>
                 <Input
@@ -309,7 +309,7 @@ function AgentDetail() {
               </div>
 
               <div className="space-y-3">
-                <label className="font-mono text-[10px] text-white/40 tracking-widest uppercase block">
+                <label className="font-mono text-[10px] text-foreground/40 tracking-widest uppercase block">
                   System Instructions
                 </label>
                 <Textarea
@@ -322,22 +322,22 @@ function AgentDetail() {
                 />
               </div>
 
-              <div className="space-y-4 pt-4 border-t border-white/10">
+              <div className="space-y-4 pt-4 border-t border-border">
                 <div className="space-y-1 mb-4">
-                  <label className="font-mono text-xs text-white tracking-widest uppercase flex items-center gap-2">
-                    <Wrench className="h-4 w-4 text-[#3D81CC]" /> Custom Tools
+                  <label className="font-mono text-xs text-foreground tracking-widest uppercase flex items-center gap-2">
+                    <Wrench className="h-4 w-4 text-primary" /> Custom Tools
                   </label>
-                  <p className="font-mono text-[9px] text-white/30 tracking-widest uppercase">
+                  <p className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase">
                     External tools this agent can invoke.
                   </p>
                 </div>
 
                 {!Array.isArray(allTools) || allTools.length === 0 ? (
-                  <div className="p-6 border border-dashed border-white/10 bg-[#111] text-center">
-                    <p className="font-mono text-xs text-white/30">No custom tools defined.</p>
+                  <div className="p-6 border border-dashed border-border bg-secondary text-center">
+                    <p className="font-mono text-xs text-foreground/30">No custom tools defined.</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-white/10 border border-white/10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-px bg-foreground/10 border border-border">
                     {allTools.map((tool: any, index: number) => {
                       const isChecked = selectedToolIds.includes(tool.toolId);
                       const elementId = `tool-${tool.toolId || index}`;
@@ -347,7 +347,7 @@ function AgentDetail() {
                           htmlFor={elementId}
                           className={cn(
                             'p-4 transition-all cursor-pointer flex items-start gap-3',
-                            isChecked ? 'bg-[#3D81CC]/10' : 'bg-[#0a0a0a] hover:bg-[#111]',
+                            isChecked ? 'bg-primary/10' : 'bg-card hover:bg-secondary',
                           )}
                         >
                           <Checkbox
@@ -365,11 +365,11 @@ function AgentDetail() {
                             className="mt-1"
                           />
                           <div className="space-y-1 min-w-0">
-                            <p className="font-mono text-xs text-white truncate">{tool.name}</p>
-                            <p className="font-mono text-[9px] text-white/30 truncate">
+                            <p className="font-mono text-xs text-foreground truncate">{tool.name}</p>
+                            <p className="font-mono text-[9px] text-foreground/30 truncate">
                               {tool.description}
                             </p>
-                            <span className="font-mono text-[8px] uppercase px-1.5 py-0.5 bg-white/5 text-white/40 tracking-widest inline-block mt-1">
+                            <span className="font-mono text-[8px] uppercase px-1.5 py-0.5 bg-foreground/5 text-foreground/40 tracking-widest inline-block mt-1">
                               {tool.method}
                             </span>
                           </div>
@@ -384,16 +384,16 @@ function AgentDetail() {
         </div>
 
         <div className="space-y-8">
-          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-            <div className="p-6 border-b border-white/10 flex items-center gap-3">
-              <Shield className="h-5 w-5 text-[#3D81CC]" />
-              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
+          <div className="bg-card border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center gap-3">
+              <Shield className="h-5 w-5 text-primary" />
+              <h3 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">
                 Features & Storage
               </h3>
             </div>
             <div className="p-6 space-y-6">
               <div className="flex flex-col gap-4">
-                <div className="flex items-center space-x-3 cursor-pointer p-4 border border-white/10 bg-[#111]">
+                <div className="flex items-center space-x-3 cursor-pointer p-4 border border-border bg-secondary">
                   <Checkbox
                     id="memory"
                     checked={memoryEnabled}
@@ -402,20 +402,20 @@ function AgentDetail() {
                   <div className="space-y-0.5 w-full">
                     <label
                       htmlFor="memory"
-                      className="font-mono text-xs text-white cursor-pointer block"
+                      className="font-mono text-xs text-foreground cursor-pointer block"
                     >
                       B8s Memory
                     </label>
-                    <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                    <p className="font-mono text-[9px] text-foreground/30 uppercase tracking-widest">
                       Store and recall facts
                     </p>
                   </div>
                 </div>
 
                 {memoryEnabled && (
-                  <div className="space-y-6 p-4 border border-white/10 bg-[#111] animate-in fade-in">
+                  <div className="space-y-6 p-4 border border-border bg-secondary animate-in fade-in">
                     <div className="space-y-3">
-                      <label className="font-mono text-[9px] text-white/30 tracking-widest uppercase flex items-center gap-2">
+                      <label className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase flex items-center gap-2">
                         <Eye className="h-3 w-3" /> Read Access
                       </label>
                       <Select
@@ -430,7 +430,7 @@ function AgentDetail() {
                       </Select>
                     </div>
                     <div className="space-y-3">
-                      <label className="font-mono text-[9px] text-white/30 tracking-widest uppercase flex items-center gap-2">
+                      <label className="font-mono text-[9px] text-foreground/30 tracking-widest uppercase flex items-center gap-2">
                         <PenTool className="h-3 w-3" /> Write Access
                       </label>
                       <Select
@@ -446,7 +446,7 @@ function AgentDetail() {
                   </div>
                 )}
 
-                <div className="flex items-center space-x-3 cursor-pointer p-4 border border-white/10 bg-[#111]">
+                <div className="flex items-center space-x-3 cursor-pointer p-4 border border-border bg-secondary">
                   <Checkbox
                     id="rag"
                     checked={ragEnabled}
@@ -455,11 +455,11 @@ function AgentDetail() {
                   <div className="space-y-0.5 w-full">
                     <label
                       htmlFor="rag"
-                      className="font-mono text-xs text-white cursor-pointer block"
+                      className="font-mono text-xs text-foreground cursor-pointer block"
                     >
                       Knowledge Base
                     </label>
-                    <p className="font-mono text-[9px] text-white/30 uppercase tracking-widest">
+                    <p className="font-mono text-[9px] text-foreground/30 uppercase tracking-widest">
                       Document grounding
                     </p>
                   </div>
@@ -468,17 +468,17 @@ function AgentDetail() {
             </div>
           </div>
 
-          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-            <div className="p-6 border-b border-white/10 flex items-center gap-3">
-              <Upload className="h-5 w-5 text-[#3D81CC]" />
-              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
+          <div className="bg-card border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center gap-3">
+              <Upload className="h-5 w-5 text-primary" />
+              <h3 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">
                 Knowledge Base
               </h3>
             </div>
             <div className="p-6 space-y-6">
               {!jobStatus || jobStatus.status === 'completed' || jobStatus.status === 'failed' ? (
                 <div className="space-y-4">
-                  <div className="border border-dashed border-white/20 bg-[#111] p-6 text-center hover:border-white/40 transition-colors">
+                  <div className="border border-dashed border-border bg-secondary p-6 text-center hover:border-white/40 transition-colors">
                     <input
                       type="file"
                       id="kb-upload"
@@ -486,10 +486,10 @@ function AgentDetail() {
                       className="hidden"
                     />
                     <label htmlFor="kb-upload" className="cursor-pointer space-y-3 block">
-                      <div className="bg-[#3D81CC]/10 p-3 w-fit mx-auto text-[#3D81CC]">
+                      <div className="bg-primary/10 p-3 w-fit mx-auto text-primary">
                         <Upload className="h-5 w-5" />
                       </div>
-                      <p className="font-mono text-[10px] uppercase tracking-widest text-white/60 truncate mx-auto">
+                      <p className="font-mono text-[10px] uppercase tracking-widest text-foreground/60 truncate mx-auto">
                         {file ? file.name : 'Click to upload'}
                       </p>
                     </label>
@@ -508,45 +508,45 @@ function AgentDetail() {
                     onClick={handleUpload}
                     disabled={!file || uploadKb.isPending}
                     variant="default"
-                    className="w-full bg-white text-black hover:bg-white/90 rounded-none font-mono uppercase tracking-widest text-[10px] h-10"
+                    className="w-full bg-foreground text-background hover:bg-foreground/90 rounded-none font-mono uppercase tracking-widest text-[10px] h-10"
                   >
                     {uploadKb.isPending ? 'Starting...' : 'Ingest Document'}
                   </Button>
                 </div>
               ) : (
-                <div className="space-y-4 p-4 border border-white/10 bg-[#111] animate-in fade-in">
+                <div className="space-y-4 p-4 border border-border bg-secondary animate-in fade-in">
                   <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono text-[10px] tracking-widest uppercase text-[#3D81CC] flex items-center gap-2">
+                    <span className="font-mono text-[10px] tracking-widest uppercase text-primary flex items-center gap-2">
                       <Loader2 className="h-3 w-3 animate-spin" />
                       {jobStatus.status === 'processing' ? 'Ingesting...' : 'Queued'}
                     </span>
-                    <span className="font-mono text-[10px] text-[#3D81CC]">{getProgress()}%</span>
+                    <span className="font-mono text-[10px] text-primary">{getProgress()}%</span>
                   </div>
-                  <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                  <div className="h-1 bg-foreground/10 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-[#3D81CC] transition-all duration-500 ease-out"
+                      className="h-full bg-primary transition-all duration-500 ease-out"
                       style={{ width: `${getProgress()}%` }}
                     />
                   </div>
-                  <p className="font-mono text-[9px] text-white/40 uppercase tracking-widest text-center mt-2">
+                  <p className="font-mono text-[9px] text-foreground/40 uppercase tracking-widest text-center mt-2">
                     {jobStatus.processedChunks} of {jobStatus.totalChunks} chunks processed
                   </p>
                 </div>
               )}
 
-              <div className="pt-4 border-t border-white/10 space-y-3">
-                <label className="font-mono text-[10px] tracking-widest text-white/40 uppercase block">
+              <div className="pt-4 border-t border-border space-y-3">
+                <label className="font-mono text-[10px] tracking-widest text-foreground/40 uppercase block">
                   Active Documents ({kbDocs?.length || 0})
                 </label>
                 <div className="space-y-2 max-h-[200px] overflow-y-auto pr-1">
                   {kbDocs?.map((doc: any) => (
                     <div
                       key={doc.docId}
-                      className="group flex items-center justify-between p-3 bg-[#111] border border-white/5 hover:border-red-500/30 transition-colors"
+                      className="group flex items-center justify-between p-3 bg-secondary border border-border hover:border-red-500/30 transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0">
-                        <FileText className="h-4 w-4 text-white/40 shrink-0" />
-                        <span className="font-mono text-[10px] text-white/80 truncate">
+                        <FileText className="h-4 w-4 text-foreground/40 shrink-0" />
+                        <span className="font-mono text-[10px] text-foreground/80 truncate">
                           {doc.fileName}
                         </span>
                       </div>
@@ -554,15 +554,15 @@ function AgentDetail() {
                         variant="ghost"
                         size="icon"
                         onClick={(e) => handleDeleteDoc(e, doc.docId)}
-                        className="h-6 w-6 text-white/20 hover:text-red-400 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-none"
+                        className="h-6 w-6 text-foreground/20 hover:text-red-400 hover:bg-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-none"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   ))}
                   {(!kbDocs || kbDocs.length === 0) && (
-                    <div className="text-center py-6 border border-dashed border-white/10 bg-[#111]">
-                      <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+                    <div className="text-center py-6 border border-dashed border-border bg-secondary">
+                      <p className="font-mono text-[10px] text-foreground/30 uppercase tracking-widest">
                         Empty knowledge base
                       </p>
                     </div>
@@ -572,10 +572,10 @@ function AgentDetail() {
             </div>
           </div>
 
-          <div className="bg-[#0a0a0a] border border-white/10 overflow-hidden">
-            <div className="p-6 border-b border-white/10 flex items-center gap-3">
-              <Settings2 className="h-5 w-5 text-[#3D81CC]" />
-              <h3 className="font-sans font-black text-lg text-white uppercase tracking-tight">
+          <div className="bg-card border border-border overflow-hidden">
+            <div className="p-6 border-b border-border flex items-center gap-3">
+              <Settings2 className="h-5 w-5 text-primary" />
+              <h3 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">
                 Memories
               </h3>
             </div>
@@ -584,14 +584,14 @@ function AgentDetail() {
                 {memories?.items?.map((m: any) => (
                   <div
                     key={m.memoryId}
-                    className="font-mono text-[10px] p-3 bg-[#111] border border-white/5 text-white/60 leading-relaxed"
+                    className="font-mono text-[10px] p-3 bg-secondary border border-border text-foreground/60 leading-relaxed"
                   >
                     {m.text}
                   </div>
                 ))}
                 {(!memories?.items || memories.items.length === 0) && (
-                  <div className="text-center py-6 border border-dashed border-white/10 bg-[#111]">
-                    <p className="font-mono text-[10px] text-white/30 uppercase tracking-widest">
+                  <div className="text-center py-6 border border-dashed border-border bg-secondary">
+                    <p className="font-mono text-[10px] text-foreground/30 uppercase tracking-widest">
                       No memories yet
                     </p>
                   </div>

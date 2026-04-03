@@ -3,36 +3,89 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light theme (default) */
   :root {
-    --background: 0 0% 0%; /* Pure black #000000 */
-    --foreground: 0 0% 100%;
+    --background: #F2F0ED;
+    --foreground: #1A1A1A;
 
-    --card: 0 0% 4%; /* #0a0a0a */
-    --card-foreground: 0 0% 100%;
+    --card: #FFFFFF;
+    --card-foreground: #1A1A1A;
 
-    --popover: 0 0% 4%;
-    --popover-foreground: 0 0% 100%;
+    --popover: #FFFFFF;
+    --popover-foreground: #1A1A1A;
 
-    --primary: 211.5 60.1% 52%; /* #3D81CC */
-    --primary-foreground: 0 0% 100%;
+    --primary: #3D81CC;
+    --primary-foreground: #ffffff;
 
-    --secondary: 0 0% 7%; /* #111111 */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: #E8E6E3;
+    --secondary-foreground: #1A1A1A;
 
-    --muted: 0 0% 7%;
-    --muted-foreground: 0 0% 50%;
+    --muted: #E8E6E3;
+    --muted-foreground: #5A5A5A;
 
-    --accent: 0 0% 7%;
-    --accent-foreground: 0 0% 100%;
+    --accent: #E8E6E3;
+    --accent-foreground: #1A1A1A;
 
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: #DC2626;
+    --destructive-foreground: #ffffff;
 
-    --border: 0 0% 100% / 0.1;
-    --input: 0 0% 100% / 0.1;
-    --ring: 211.5 60.1% 52%;
+    --border: rgba(0, 0, 0, 0.15);
+    --input: rgba(0, 0, 0, 0.15);
+    --ring: #3D81CC;
 
     --radius: 0px;
+
+    /* Semantic surface tokens */
+    --surface-elevated: #FFFFFF;
+    --surface-hover: #F5F3F0;
+    --overlay: rgba(0, 0, 0, 0.4);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.15);
+    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.25);
+    --shimmer-from: rgba(61, 129, 204, 0.08);
+    --shimmer-mid: rgba(0, 0, 0, 0.06);
+    --loading-bar-start: #1A1A1A;
+    --loading-bar-end: #3D81CC;
+  }
+
+  /* Dark theme */
+  .dark {
+    --background: #000000;
+    --foreground: #ffffff;
+
+    --card: #0a0a0a;
+    --card-foreground: #ffffff;
+
+    --popover: #0a0a0a;
+    --popover-foreground: #ffffff;
+
+    --primary: #3D81CC;
+    --primary-foreground: #ffffff;
+
+    --secondary: #111111;
+    --secondary-foreground: #ffffff;
+
+    --muted: #111111;
+    --muted-foreground: rgba(255, 255, 255, 0.5);
+
+    --accent: #111111;
+    --accent-foreground: #ffffff;
+
+    --destructive: #DC2626;
+    --destructive-foreground: #ffffff;
+
+    --border: rgba(255, 255, 255, 0.1);
+    --input: rgba(255, 255, 255, 0.1);
+    --ring: #3D81CC;
+
+    --surface-elevated: #111111;
+    --surface-hover: #1a1a1a;
+    --overlay: rgba(0, 0, 0, 0.6);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.1);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+    --shimmer-from: rgba(61, 129, 204, 0.1);
+    --shimmer-mid: rgba(255, 255, 255, 0.15);
+    --loading-bar-start: #ffffff;
+    --loading-bar-end: #3d81cc;
   }
 }
 
@@ -49,8 +102,8 @@
   *:focus-visible {
     outline: none;
     box-shadow:
-      0 0 0 2px hsl(var(--background)),
-      0 0 0 4px hsl(var(--primary));
+      0 0 0 2px var(--background),
+      0 0 0 4px var(--primary);
   }
 }
 
@@ -62,10 +115,10 @@
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--scrollbar-thumb);
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--scrollbar-thumb-hover);
 }
 
 /* Animations */
@@ -81,9 +134,9 @@
 .animate-gemini-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(61, 129, 204, 0.1) 25%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(61, 129, 204, 0.1) 75%
+    var(--shimmer-from) 25%,
+    var(--shimmer-mid) 50%,
+    var(--shimmer-from) 75%
   );
   background-size: 200% 100%;
   animation: gemini-shimmer 2s infinite linear;
@@ -111,7 +164,7 @@
 .gemini-loading-bar {
   width: 3px;
   height: 100%;
-  background: linear-gradient(to bottom, #ffffff, #3d81cc);
+  background: linear-gradient(to bottom, var(--loading-bar-start), var(--loading-bar-end));
   animation: gemini-loading-bar 1s ease-in-out infinite;
 }
 

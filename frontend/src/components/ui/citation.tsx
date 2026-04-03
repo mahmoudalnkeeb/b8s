@@ -27,10 +27,10 @@ export const Citation = React.memo(
         className={cn(
           'inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs',
           'border transition-colors cursor-pointer',
-          'hover:bg-white/10',
+          'hover:bg-foreground/10',
           isRelevant === false
-            ? 'border-red-500/30 bg-red-500/10 text-red-400'
-            : 'border-blue-500/30 bg-blue-500/10 text-blue-400'
+            ? 'border-red-500/30 bg-red-500/10 text-red-500 dark:text-red-400'
+            : 'border-primary/30 bg-primary/10 text-primary'
         )}
         title={`${fileName} - Chunk ${chunkIndex + 1}${relevancePercent ? ` (${relevancePercent}% relevant)` : ''}`}
       >
@@ -43,9 +43,9 @@ export const Citation = React.memo(
           <>
             <span className="text-muted-foreground/50">|</span>
             {isRelevant ? (
-              <CheckCircle className="h-3 w-3 text-green-400" />
+              <CheckCircle className="h-3 w-3 text-green-500 dark:text-green-400" />
             ) : (
-              <XCircle className="h-3 w-3 text-red-400" />
+              <XCircle className="h-3 w-3 text-red-500 dark:text-red-400" />
             )}
             <span>{relevancePercent}%</span>
           </>
@@ -72,7 +72,7 @@ export const CitationsList = React.memo(
     if (!citations || citations.length === 0) return null;
 
     return (
-      <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-white/10">
+      <div className="flex flex-wrap gap-1.5 mt-2 pt-2 border-t border-border">
         <span className="text-[10px] text-muted-foreground/50 uppercase tracking-wider self-center mr-1">
           Sources:
         </span>

@@ -30,7 +30,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="absolute top-2 right-2 p-1.5 rounded-md bg-white/10 hover:bg-white/20 transition-colors text-slate-400 hover:text-slate-200"
+      className="absolute top-2 right-2 p-1.5 rounded-md bg-foreground/10 hover:bg-foreground/20 transition-colors text-muted-foreground hover:text-foreground"
       aria-label="Copy code"
     >
       {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
@@ -45,7 +45,7 @@ function LoadingDots() {
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 rounded-full bg-slate-400 animate-bounce"
+          className="h-1.5 w-1.5 rounded-full bg-muted-foreground animate-bounce"
           style={{ animationDelay: `${i * 0.15}s`, animationDuration: '0.9s' }}
         />
       ))}
@@ -67,7 +67,7 @@ const markdownComponents: Components = {
     if (!isBlock) {
       return (
         <code
-          className="px-1.5 py-0.5 rounded-md bg-black/40 border border-white/10 text-[0.82em] text-blue-300 font-mono"
+          className="px-1.5 py-0.5 rounded-md bg-foreground/10 border border-border text-[0.82em] text-primary font-mono"
           {...props}
         >
           {children}
@@ -76,16 +76,16 @@ const markdownComponents: Components = {
     }
 
     return (
-      <div className="relative my-3 rounded-xl overflow-hidden border border-white/10 bg-black/50 text-[0.82em]">
+      <div className="relative my-3 rounded-xl overflow-hidden border border-border bg-card text-[0.82em]">
         {language && (
-          <div className="flex items-center justify-between px-4 py-1.5 border-b border-white/10 bg-white/5">
-            <span className="text-[10px] font-mono uppercase tracking-widest text-slate-500">
+          <div className="flex items-center justify-between px-4 py-1.5 border-b border-border bg-foreground/5">
+            <span className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
               {language}
             </span>
           </div>
         )}
         <CopyButton text={text} />
-        <pre className="overflow-x-auto p-4 m-0 leading-relaxed font-mono text-slate-200">
+        <pre className="overflow-x-auto p-4 m-0 leading-relaxed font-mono text-foreground/80">
           <code>{children}</code>
         </pre>
       </div>
@@ -99,7 +99,7 @@ const markdownComponents: Components = {
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-0.5 text-blue-400 underline underline-offset-2 decoration-blue-400/40 hover:text-blue-300 hover:decoration-blue-300/60 transition-colors"
+        className="inline-flex items-center gap-0.5 text-primary underline underline-offset-2 decoration-primary/40 hover:text-primary/80 hover:decoration-primary/60 transition-colors"
       >
         {children}
         <ExternalLink className="h-3 w-3 shrink-0 opacity-70" />
@@ -110,7 +110,7 @@ const markdownComponents: Components = {
   // Blockquote
   blockquote({ children }) {
     return (
-      <blockquote className="border-l-2 border-blue-500/50 pl-3 my-2 text-slate-400 italic">
+      <blockquote className="border-l-2 border-primary/50 pl-3 my-2 text-muted-foreground italic">
         {children}
       </blockquote>
     );
@@ -118,13 +118,13 @@ const markdownComponents: Components = {
 
   // Headings
   h1: ({ children }) => (
-    <h1 className="text-xl font-semibold mt-4 mb-2 text-slate-100">{children}</h1>
+    <h1 className="text-xl font-semibold mt-4 mb-2 text-foreground">{children}</h1>
   ),
   h2: ({ children }) => (
-    <h2 className="text-lg font-semibold mt-3 mb-1.5 text-slate-100">{children}</h2>
+    <h2 className="text-lg font-semibold mt-3 mb-1.5 text-foreground">{children}</h2>
   ),
   h3: ({ children }) => (
-    <h3 className="text-base font-semibold mt-3 mb-1 text-slate-200">{children}</h3>
+    <h3 className="text-base font-semibold mt-3 mb-1 text-foreground/90">{children}</h3>
   ),
 
   // Paragraphs — prevent prose from adding excess margin
@@ -141,26 +141,26 @@ const markdownComponents: Components = {
 
   // Tables
   table: ({ children }) => (
-    <div className="overflow-x-auto my-3 rounded-lg border border-white/10">
+    <div className="overflow-x-auto my-3 rounded-lg border border-border">
       <table className="w-full text-sm border-collapse">{children}</table>
     </div>
   ),
-  thead: ({ children }) => <thead className="bg-white/5">{children}</thead>,
-  tbody: ({ children }) => <tbody className="divide-y divide-white/5">{children}</tbody>,
-  tr: ({ children }) => <tr className="divide-x divide-white/5">{children}</tr>,
+  thead: ({ children }) => <thead className="bg-foreground/5">{children}</thead>,
+  tbody: ({ children }) => <tbody className="divide-y divide-border">{children}</tbody>,
+  tr: ({ children }) => <tr className="divide-x divide-border">{children}</tr>,
   th: ({ children }) => (
-    <th className="px-3 py-2 text-left font-medium text-slate-300 text-xs uppercase tracking-wide">
+    <th className="px-3 py-2 text-left font-medium text-foreground/80 text-xs uppercase tracking-wide">
       {children}
     </th>
   ),
-  td: ({ children }) => <td className="px-3 py-2 text-slate-300">{children}</td>,
+  td: ({ children }) => <td className="px-3 py-2 text-foreground/80">{children}</td>,
 
   // Horizontal rule
-  hr: () => <hr className="my-3 border-white/10" />,
+  hr: () => <hr className="my-3 border-border" />,
 
   // Strong / em
-  strong: ({ children }) => <strong className="font-semibold text-slate-100">{children}</strong>,
-  em: ({ children }) => <em className="italic text-slate-300">{children}</em>,
+  strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+  em: ({ children }) => <em className="italic text-foreground/80">{children}</em>,
 };
 
 // --- Main component ---
@@ -168,8 +168,8 @@ export const MessageBubble = React.memo(({ message }: { message: MessageProps })
   if (message.role === 'tool') {
     return (
       <div className="flex justify-center my-4 opacity-70">
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 text-white/60 text-[10px] font-mono tracking-widest uppercase shadow-sm">
-          <Wrench className="h-3 w-3 text-[#3D81CC]" />
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-foreground/5 border border-border text-muted-foreground text-[10px] font-mono tracking-widest uppercase shadow-sm">
+          <Wrench className="h-3 w-3 text-primary" />
           {message.content || `Utilized tool: ${message.toolName || 'system'}`}
         </div>
       </div>
@@ -184,13 +184,13 @@ export const MessageBubble = React.memo(({ message }: { message: MessageProps })
       <div
         className={cn(
           'h-8 w-8 rounded-lg flex items-center justify-center shrink-0 border',
-          isUser ? 'bg-blue-600 border-blue-500' : 'bg-secondary/50 border-border/50',
+          isUser ? 'bg-primary border-primary' : 'bg-secondary/50 border-border',
         )}
       >
         {isUser ? (
-          <User className="h-4 w-4 text-white" />
+          <User className="h-4 w-4 text-primary-foreground" />
         ) : (
-          <Bot className="h-4 w-4 text-blue-400" />
+          <Bot className="h-4 w-4 text-primary" />
         )}
       </div>
 
@@ -205,8 +205,8 @@ export const MessageBubble = React.memo(({ message }: { message: MessageProps })
           className={cn(
             'rounded-2xl px-4 py-3 text-sm leading-relaxed shadow-sm',
             isUser
-              ? 'bg-blue-600 text-white'
-              : 'bg-secondary/20 border border-border/40 text-slate-200',
+              ? 'bg-primary text-primary-foreground'
+              : 'bg-secondary/20 border border-border text-foreground/90',
           )}
         >
           {message.isLoading ? (

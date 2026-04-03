@@ -70,26 +70,26 @@ function NewChat() {
 
   return (
     <div className="flex flex-col h-full w-full max-w-5xl mx-auto relative overflow-hidden">
-      <div className="p-4 flex items-center justify-between border-b border-white/10 bg-black/50 sticky top-0 z-30 backdrop-blur-md">
+      <div className="p-4 flex items-center justify-between border-b border-border bg-background/50 sticky top-0 z-30 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
             asChild
-            className="lg:hidden text-white/50 hover:text-white hover:bg-white/5 rounded-none border border-transparent"
+            className="lg:hidden text-foreground/50 hover:text-foreground hover:bg-foreground/5 rounded-none border border-transparent"
           >
             <Link to="/discover">
               <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
-          <div className="p-2 border border-[#3D81CC]/30 bg-[#3D81CC]/10">
-            <Bot className="h-5 w-5 text-[#3D81CC]" />
+          <div className="p-2 border border-primary/30 bg-primary/10">
+            <Bot className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="font-sans font-black text-sm text-white uppercase tracking-tight">
+            <h3 className="font-sans font-black text-sm text-foreground uppercase tracking-tight">
               New Chat with {agent?.name || 'Agent'}
             </h3>
-            <p className="font-mono text-[9px] text-white/40 uppercase tracking-widest">Draft</p>
+            <p className="font-mono text-[9px] text-foreground/40 uppercase tracking-widest">Draft</p>
           </div>
         </div>
       </div>
@@ -105,7 +105,7 @@ function NewChat() {
               transition={{ duration: 0.4, ease: [0.32, 0.72, 0, 1] }}
               className="flex flex-col items-center justify-center -mt-24 w-full"
             >
-              <h2 className="font-sans font-black text-3xl md:text-5xl text-white uppercase tracking-tight mb-8 drop-shadow-sm text-center">
+              <h2 className="font-sans font-black text-3xl md:text-5xl text-foreground uppercase tracking-tight mb-8 drop-shadow-sm text-center">
                 WHAT CAN I HELP WITH?
               </h2>
               
@@ -117,14 +117,14 @@ function NewChat() {
                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Ask anything..."
-                    className="min-h-[64px] py-5 pl-5 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-base text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto shadow-xl"
+                    className="min-h-[64px] py-5 pl-5 pr-16 bg-card border border-border rounded-none focus-visible:ring-1 focus-visible:ring-primary text-base text-foreground font-mono placeholder:text-foreground/20 resize-none overflow-y-auto shadow-xl"
                     disabled={isStreaming}
                     rows={1}
                   />
                   <button
                     type="submit"
                     disabled={isStreaming || !input.trim()}
-                    className="absolute right-2.5 bottom-2.5 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
+                    className="absolute right-2.5 bottom-2.5 h-10 w-12 bg-primary hover:bg-foreground text-primary-foreground hover:text-background transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
                     aria-label="Send message"
                   >
                     {isStreaming ? (
@@ -154,8 +154,8 @@ function NewChat() {
               />
             )}
             {isStreaming && !isWaiting && (
-              <div className="flex items-center gap-2 font-mono text-[10px] text-white/40 uppercase tracking-widest animate-pulse ml-12">
-                <Loader2 className="h-3 w-3 animate-spin text-[#3D81CC]" />
+              <div className="flex items-center gap-2 font-mono text-[10px] text-foreground/40 uppercase tracking-widest animate-pulse ml-12">
+                <Loader2 className="h-3 w-3 animate-spin text-primary" />
                 Initializing conversation...
               </div>
             )}
@@ -172,7 +172,7 @@ function NewChat() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: [0.32, 0.72, 0, 1] }}
-            className="p-4 bg-gradient-to-t from-black via-black/80 to-transparent pt-10 sticky bottom-0 z-20"
+            className="p-4 bg-gradient-to-t from-background via-background/80 to-transparent pt-10 sticky bottom-0 z-20"
           >
             <form onSubmit={handleSend} className="relative max-w-4xl mx-auto w-full group">
               <Textarea
@@ -181,14 +181,14 @@ function NewChat() {
                 onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Ask anything..."
-                className="min-h-[56px] py-4 pl-4 pr-16 bg-[#0a0a0a] border border-white/10 rounded-none focus-visible:ring-1 focus-visible:ring-[#3D81CC] text-sm text-white font-mono placeholder:text-white/20 resize-none overflow-y-auto shadow-xl"
+                className="min-h-[56px] py-4 pl-4 pr-16 bg-card border border-border rounded-none focus-visible:ring-1 focus-visible:ring-primary text-sm text-foreground font-mono placeholder:text-foreground/20 resize-none overflow-y-auto shadow-xl"
                 disabled={isStreaming}
                 rows={1}
               />
               <button
                 type="submit"
                 disabled={isStreaming || !input.trim()}
-                className="absolute right-2 bottom-2 h-10 w-12 bg-[#3D81CC] hover:bg-white text-white hover:text-black transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
+                className="absolute right-2 bottom-2 h-10 w-12 bg-primary hover:bg-foreground text-primary-foreground hover:text-background transition-colors flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed border-none cursor-pointer rounded-none"
                 aria-label="Send message"
               >
                 {isStreaming ? (
