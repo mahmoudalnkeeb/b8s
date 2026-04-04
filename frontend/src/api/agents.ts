@@ -85,7 +85,7 @@ export const agentsApi = {
   },
 }
 
-export const useMyAgents = (params?: UseMyAgentsParams, options?: any) => {
+export const useMyAgents = (params?: UseMyAgentsParams, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['agents', 'my', params],
     queryFn: () => agentsApi.getMyAgents(params),

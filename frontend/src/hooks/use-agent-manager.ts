@@ -3,17 +3,19 @@ import { useMyAgents, useCreateAgent, usePinnedAgents } from '../api/agents';
 import { toast } from 'sonner';
 
 export function useAgentManager() {
-  const { data: agents, isLoading: isAgentsLoading } = useMyAgents();
+  const { data: agentsResponse, isLoading: isAgentsLoading } = useMyAgents();
   const createAgent = useCreateAgent();
 
   const { data: pinnedAgents } = usePinnedAgents({ enabled: true });
 
   const agentList = useMemo(() => {
-    if (!Array.isArray(agents)) return [];
-    if (!Array.isArray(pinnedAgents)) return agents;
+    // Handle both paginated response { agents: [], total } and legacy array response
+    const agentsArray = agentsResponse?.agents ?? agentsResponse ?? [];
+    if (!Array.isArray(agentsArray)) return [];
+    if (!Array.isArray(pinnedAgents)) return agentsArray;
     const pinSet = new Set(pinnedAgents.map((p: any) => p.agentId));
-    return agents.map((a: any) => ({ ...a, isPinned: pinSet.has(a.agentId) }));
-  }, [agents, pinnedAgents]);
+    return agentsArray.map((a: any) => ({ ...a, isPinned: pinSet.has(a.agentId) }));
+  }, [agentsResponse, pinnedAgents]);
 
   const [showCreate, setShowCreate] = useState(false);
   const [search, setSearch] = useState('');
