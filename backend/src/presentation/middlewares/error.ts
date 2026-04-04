@@ -64,7 +64,9 @@ export class ErrorMiddleware {
     }
 
     if (err instanceof AppError) {
-      errorMonitor.captureException(err, context);
+      if (err.statusCode >= 500) {
+        errorMonitor.captureException(err, context);
+      }
       return res.status(err.statusCode).json({
         status: 'error',
         message: err.message,

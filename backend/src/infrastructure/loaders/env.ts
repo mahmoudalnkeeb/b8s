@@ -8,18 +8,18 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1),
 
   // MongoDB
-  MONGODB_URI: z.string().url(),
+  MONGODB_URI: z.url(),
 
   // Vector DB
   VECTOR_DB_TYPE: z.enum(['qdrant', 'mongodb']).default('qdrant'),
-  VECTOR_DB_URL: z.string().url(),
+  VECTOR_DB_URL: z.url(),
   VECTOR_DB_API_KEY: z.string().optional(),
 
   // Ollama
-  OLLAMA_URL: z.string().url().default('http://localhost:11434'),
+  OLLAMA_URL: z.url().default('http://localhost:11434'),
 
   // Redis (for BullMQ)
-  REDIS_URL: z.string().url().default('redis://localhost:6379'),
+  REDIS_URL: z.url().default('redis://localhost:6379'),
 
   // LLM
   GEMINI_API_KEY: z.string().min(1),
@@ -34,7 +34,7 @@ const envSchema = z.object({
   SMTP_SECURE: z.boolean().default(false),
   SMTP_USER: z.string().optional(),
   SMTP_PASS: z.string().optional(),
-  SMTP_FROM: z.string().email().default('b8s_noreply@mahmoudalnakeeb.com'),
+  SMTP_FROM: z.email().default('b8s_noreply@mahmoudalnakeeb.com'),
 
   // Sentry
   SENTRY_DSN: z.string().optional(),
