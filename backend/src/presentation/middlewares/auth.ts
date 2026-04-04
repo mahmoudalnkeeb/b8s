@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { authConfig } from '../../infrastructure/configs';
 import { DIContainer } from '../../infrastructure/di/container';
+import { logger } from '../../infrastructure/utils/logger';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -71,7 +72,18 @@ export const authMiddleware = {
       
       return res.status(401).json({ error: 'Unauthorized' });
     } catch (error) {
-      return res.status(401).json({ error: 'Invalid token' });
+      logger.error('Auth middleware error', { error: error instanceof Error ? error.message : String(error) });
+      
+      // Differentiate between auth errors and system errors
+      if (error instanceof jwt.JsonWebTokenError) {
+        return res.status(401).json({ error: 'Invalid or expired token' });
+      }
+      if (error instanceof jwt.TokenExpiredError) {
+        return res.status(401).json({ error: 'Token has expired' });
+      }
+      
+      // For other errors, return a generic message but log the details
+      return res.status(401).json({ error: 'Authentication failed' });
     }
   },
 

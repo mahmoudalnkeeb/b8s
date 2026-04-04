@@ -53,4 +53,18 @@ export class MongoUserRepository implements IUserRepository {
       throw new DatabaseError(message, 'MONGO_SAVE_USER_ERROR');
     }
   }
+
+  async update(userId: string, updates: Partial<IUser>): Promise<IUser | null> {
+    try {
+      const doc = await UserModel.findOneAndUpdate(
+        { userId },
+        { $set: updates },
+        { returnDocument: 'after' }
+      );
+      return doc ? this.mapToDomain(doc) : null;
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new DatabaseError(message, 'MONGO_UPDATE_USER_ERROR');
+    }
+  }
 }

@@ -1,5 +1,5 @@
-import { randomBytes } from 'crypto';
-import { IApiKeyRepository, IPasswordHasher } from '../../domain/ports';
+import { randomBytes, createHash } from 'crypto';
+import { IApiKeyRepository } from '../../domain/ports';
 
 export interface CreateApiKeyRequest {
   userId: string;
@@ -15,16 +15,13 @@ export interface CreateApiKeyResult {
 }
 
 export class CreateApiKeyUseCase {
-  constructor(
-    private apiKeyRepo: IApiKeyRepository,
-    private passwordHasher: IPasswordHasher,
-  ) {}
+  constructor(private apiKeyRepo: IApiKeyRepository) {}
 
   async execute(request: CreateApiKeyRequest): Promise<CreateApiKeyResult> {
     // Generate API key in format: b8s_<random>
     const randomPart = randomBytes(16).toString('hex');
     const plainKey = `b8s_${randomPart}`;
-    const keyHash = await this.passwordHasher.hash(plainKey);
+    const keyHash = createHash('sha256').update(plainKey).digest('hex');
     const keyPrefix = plainKey.slice(-6);
     const keyId = randomBytes(8).toString('hex');
     const createdAt = new Date();

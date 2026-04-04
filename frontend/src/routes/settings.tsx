@@ -56,6 +56,18 @@ function SettingsPage() {
       toast.error('Password must be at least 8 characters')
       return
     }
+    if (!/[A-Z]/.test(newPassword)) {
+      toast.error('Password must contain at least one uppercase letter')
+      return
+    }
+    if (!/[a-z]/.test(newPassword)) {
+      toast.error('Password must contain at least one lowercase letter')
+      return
+    }
+    if (!/[0-9]/.test(newPassword)) {
+      toast.error('Password must contain at least one number')
+      return
+    }
     
     try {
       await changePassword.mutateAsync({ currentPassword, newPassword })

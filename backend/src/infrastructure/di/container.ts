@@ -145,7 +145,6 @@ export class DIContainer {
   );
   static readonly createApiKey = new CreateApiKeyUseCase(
     this.apiKeyRepo,
-    this.passwordHasher,
   );
   static readonly listApiKeys = new ListApiKeysUseCase(this.apiKeyRepo);
   static readonly revokeApiKey = new RevokeApiKeyUseCase(this.apiKeyRepo);

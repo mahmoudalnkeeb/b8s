@@ -1,5 +1,5 @@
 import { IUserRepository, IPasswordHasher } from '../../domain/ports';
-import { UnauthorizedError } from '../../domain/errors';
+import { UnauthorizedError, BadRequestError } from '../../domain/errors';
 
 export interface ChangePasswordRequest {
   userId: string;
@@ -24,6 +24,12 @@ export class ChangePasswordUseCase {
     const isValid = await this.passwordHasher.compare(request.currentPassword, user.passwordHash);
     if (!isValid) {
       throw new UnauthorizedError('Current password is incorrect', 'INVALID_PASSWORD');
+    }
+    
+    // Verify new password is different from current
+    const isSamePassword = await this.passwordHasher.compare(request.newPassword, user.passwordHash);
+    if (isSamePassword) {
+      throw new BadRequestError('New password must be different from current password', 'SAME_PASSWORD');
     }
     
     // Hash new password and update
