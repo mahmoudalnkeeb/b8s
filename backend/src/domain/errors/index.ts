@@ -33,6 +33,11 @@ export class ValidationError extends DomainError {
     super(message, code || 'VALIDATION_ERROR');
   }
 }
+export class BadRequestError extends DomainError {
+  constructor(message: string, code?: string) {
+    super(message, code || 'BAD_REQUEST');
+  }
+}
 export class InsufficientBalanceError extends DomainError {
   constructor(message: string = 'Insufficient CU balance. Please top up or upgrade your plan.') {
     super(message, 'INSUFFICIENT_BALANCE');

@@ -21,8 +21,10 @@ import { Route as ConversationsMyRouteImport } from './routes/conversations/my'
 import { Route as ChatConversationIdRouteImport } from './routes/chat/$conversationId'
 import { Route as AuthRegisterRouteImport } from './routes/auth/register'
 import { Route as AuthLoginRouteImport } from './routes/auth/login'
+import { Route as AuthForgotPasswordRouteImport } from './routes/auth/forgot-password'
 import { Route as AgentsAgentIdRouteImport } from './routes/agents/$agentId'
 import { Route as ChatNewAgentIdRouteImport } from './routes/chat/new/$agentId'
+import { Route as AuthResetPasswordTokenRouteImport } from './routes/auth/reset-password/$token'
 import { Route as AdminFeedbackFeedbackIdRouteImport } from './routes/admin/feedback/$feedbackId'
 
 const SettingsRoute = SettingsRouteImport.update({
@@ -85,6 +87,11 @@ const AuthLoginRoute = AuthLoginRouteImport.update({
   path: '/auth/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthForgotPasswordRoute = AuthForgotPasswordRouteImport.update({
+  id: '/auth/forgot-password',
+  path: '/auth/forgot-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
   id: '/agents/$agentId',
   path: '/agents/$agentId',
@@ -93,6 +100,11 @@ const AgentsAgentIdRoute = AgentsAgentIdRouteImport.update({
 const ChatNewAgentIdRoute = ChatNewAgentIdRouteImport.update({
   id: '/chat/new/$agentId',
   path: '/chat/new/$agentId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthResetPasswordTokenRoute = AuthResetPasswordTokenRouteImport.update({
+  id: '/auth/reset-password/$token',
+  path: '/auth/reset-password/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminFeedbackFeedbackIdRoute = AdminFeedbackFeedbackIdRouteImport.update({
@@ -108,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/chat/$conversationId': typeof ChatConversationIdRoute
@@ -116,6 +129,7 @@ export interface FileRoutesByFullPath {
   '/agents/': typeof AgentsIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/admin/feedback/$feedbackId': typeof AdminFeedbackFeedbackIdRoute
+  '/auth/reset-password/$token': typeof AuthResetPasswordTokenRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
 }
 export interface FileRoutesByTo {
@@ -125,6 +139,7 @@ export interface FileRoutesByTo {
   '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/chat/$conversationId': typeof ChatConversationIdRoute
@@ -133,6 +148,7 @@ export interface FileRoutesByTo {
   '/agents': typeof AgentsIndexRoute
   '/tools': typeof ToolsIndexRoute
   '/admin/feedback/$feedbackId': typeof AdminFeedbackFeedbackIdRoute
+  '/auth/reset-password/$token': typeof AuthResetPasswordTokenRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
 }
 export interface FileRoutesById {
@@ -143,6 +159,7 @@ export interface FileRoutesById {
   '/guide': typeof GuideRoute
   '/settings': typeof SettingsRoute
   '/agents/$agentId': typeof AgentsAgentIdRoute
+  '/auth/forgot-password': typeof AuthForgotPasswordRoute
   '/auth/login': typeof AuthLoginRoute
   '/auth/register': typeof AuthRegisterRoute
   '/chat/$conversationId': typeof ChatConversationIdRoute
@@ -151,6 +168,7 @@ export interface FileRoutesById {
   '/agents/': typeof AgentsIndexRoute
   '/tools/': typeof ToolsIndexRoute
   '/admin/feedback/$feedbackId': typeof AdminFeedbackFeedbackIdRoute
+  '/auth/reset-password/$token': typeof AuthResetPasswordTokenRoute
   '/chat/new/$agentId': typeof ChatNewAgentIdRoute
 }
 export interface FileRouteTypes {
@@ -162,6 +180,7 @@ export interface FileRouteTypes {
     | '/guide'
     | '/settings'
     | '/agents/$agentId'
+    | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/chat/$conversationId'
@@ -170,6 +189,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/tools/'
     | '/admin/feedback/$feedbackId'
+    | '/auth/reset-password/$token'
     | '/chat/new/$agentId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -179,6 +199,7 @@ export interface FileRouteTypes {
     | '/guide'
     | '/settings'
     | '/agents/$agentId'
+    | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/chat/$conversationId'
@@ -187,6 +208,7 @@ export interface FileRouteTypes {
     | '/agents'
     | '/tools'
     | '/admin/feedback/$feedbackId'
+    | '/auth/reset-password/$token'
     | '/chat/new/$agentId'
   id:
     | '__root__'
@@ -196,6 +218,7 @@ export interface FileRouteTypes {
     | '/guide'
     | '/settings'
     | '/agents/$agentId'
+    | '/auth/forgot-password'
     | '/auth/login'
     | '/auth/register'
     | '/chat/$conversationId'
@@ -204,6 +227,7 @@ export interface FileRouteTypes {
     | '/agents/'
     | '/tools/'
     | '/admin/feedback/$feedbackId'
+    | '/auth/reset-password/$token'
     | '/chat/new/$agentId'
   fileRoutesById: FileRoutesById
 }
@@ -214,6 +238,7 @@ export interface RootRouteChildren {
   GuideRoute: typeof GuideRoute
   SettingsRoute: typeof SettingsRoute
   AgentsAgentIdRoute: typeof AgentsAgentIdRoute
+  AuthForgotPasswordRoute: typeof AuthForgotPasswordRoute
   AuthLoginRoute: typeof AuthLoginRoute
   AuthRegisterRoute: typeof AuthRegisterRoute
   ChatConversationIdRoute: typeof ChatConversationIdRoute
@@ -222,6 +247,7 @@ export interface RootRouteChildren {
   AgentsIndexRoute: typeof AgentsIndexRoute
   ToolsIndexRoute: typeof ToolsIndexRoute
   AdminFeedbackFeedbackIdRoute: typeof AdminFeedbackFeedbackIdRoute
+  AuthResetPasswordTokenRoute: typeof AuthResetPasswordTokenRoute
   ChatNewAgentIdRoute: typeof ChatNewAgentIdRoute
 }
 
@@ -311,6 +337,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthLoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/auth/forgot-password': {
+      id: '/auth/forgot-password'
+      path: '/auth/forgot-password'
+      fullPath: '/auth/forgot-password'
+      preLoaderRoute: typeof AuthForgotPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/agents/$agentId': {
       id: '/agents/$agentId'
       path: '/agents/$agentId'
@@ -323,6 +356,13 @@ declare module '@tanstack/react-router' {
       path: '/chat/new/$agentId'
       fullPath: '/chat/new/$agentId'
       preLoaderRoute: typeof ChatNewAgentIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth/reset-password/$token': {
+      id: '/auth/reset-password/$token'
+      path: '/auth/reset-password/$token'
+      fullPath: '/auth/reset-password/$token'
+      preLoaderRoute: typeof AuthResetPasswordTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin/feedback/$feedbackId': {
@@ -342,6 +382,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideRoute: GuideRoute,
   SettingsRoute: SettingsRoute,
   AgentsAgentIdRoute: AgentsAgentIdRoute,
+  AuthForgotPasswordRoute: AuthForgotPasswordRoute,
   AuthLoginRoute: AuthLoginRoute,
   AuthRegisterRoute: AuthRegisterRoute,
   ChatConversationIdRoute: ChatConversationIdRoute,
@@ -350,6 +391,7 @@ const rootRouteChildren: RootRouteChildren = {
   AgentsIndexRoute: AgentsIndexRoute,
   ToolsIndexRoute: ToolsIndexRoute,
   AdminFeedbackFeedbackIdRoute: AdminFeedbackFeedbackIdRoute,
+  AuthResetPasswordTokenRoute: AuthResetPasswordTokenRoute,
   ChatNewAgentIdRoute: ChatNewAgentIdRoute,
 }
 export const routeTree = rootRouteImport

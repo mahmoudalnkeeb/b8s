@@ -13,3 +13,6 @@ export * from './memory-service';
 export * from './rag-service';
 export * from './billing-repository';
 export * from './feedback-repository';
+export * from './email-service';
+export * from './password-reset-repository';
+export * from './api-key-repository';

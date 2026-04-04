@@ -284,6 +284,53 @@ const FeedbackSchema = new Schema<IFeedback>(
   { timestamps: true },
 );
 
+// --- Password Reset Token ---
+export interface IPasswordResetToken extends Document {
+  token: string;
+  userId: string;
+  expiresAt: Date;
+  used: boolean;
+  createdAt: Date;
+}
+
+const PasswordResetTokenSchema = new Schema<IPasswordResetToken>(
+  {
+    token: { type: String, required: true, unique: true, index: true },
+    userId: { type: String, required: true, index: true },
+    expiresAt: { type: Date, required: true },
+    used: { type: Boolean, default: false },
+  },
+  { timestamps: true },
+);
+
+// --- API Key ---
+export interface IApiKey extends Document {
+  keyId: string;
+  userId: string;
+  name: string;
+  keyHash: string;
+  keyPrefix: string;
+  permissions: string[];
+  createdAt: Date;
+  lastUsedAt?: Date;
+  revokedAt?: Date;
+}
+
+const ApiKeySchema = new Schema<IApiKey>(
+  {
+    keyId: { type: String, required: true, unique: true },
+    userId: { type: String, required: true, index: true },
+    name: { type: String, required: true },
+    keyHash: { type: String, required: true },
+    keyPrefix: { type: String, required: true },
+    permissions: [{ type: String }],
+    lastUsedAt: { type: Date },
+    revokedAt: { type: Date },
+  },
+  { timestamps: true },
+);
+
+// --- Missing Schemas for backward compatibility ---
 const UserPinSchema = new Schema<IUserPin>(
   {
     userId: { type: String, required: true, index: true },
@@ -357,3 +404,8 @@ export const BillingAccountModel = model<IBillingAccount>('BillingAccount', Bill
 export const CouponModel = model<ICoupon>('Coupon', CouponSchema);
 export const UsageLogModel = model<IUsageLog>('UsageLog', UsageLogSchema);
 export const FeedbackModel = model<IFeedback>('Feedback', FeedbackSchema);
+export const PasswordResetTokenModel = model<IPasswordResetToken>(
+  'PasswordResetToken',
+  PasswordResetTokenSchema,
+);
+export const ApiKeyModel = model<IApiKey>('ApiKey', ApiKeySchema);

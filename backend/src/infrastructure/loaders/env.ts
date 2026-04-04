@@ -28,6 +28,14 @@ const envSchema = z.object({
   DEEPSEEK_MODEL: z.string().min(1),
   EMBEDDING_MODEL: z.string().default('nomic-embed-text-v2-moe'),
 
+  // SMTP (for password reset emails)
+  SMTP_HOST: z.string().default('smtp.example.com'),
+  SMTP_PORT: z.string().transform(Number).default(587),
+  SMTP_SECURE: z.boolean().default(false),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().email().default('b8s_noreply@mahmoudalnakeeb.com'),
+
   // Sentry
   SENTRY_DSN: z.string().optional(),
 });

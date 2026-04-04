@@ -9,9 +9,12 @@ import {
   MongoBillingRepository,
   MongoCouponRepository,
   MongoFeedbackRepository,
+  MongoPasswordResetRepository,
+  MongoApiKeyRepository,
 } from '../adapters/db';
 import { ToolExecutionAdapter, MemoryServiceAdapter, RagServiceAdapter } from '../adapters/tools';
 import { BcryptPasswordHasher, JwtTokenService } from '../adapters/auth';
+import { NodemailerAdapter } from '../adapters/email/nodemailer-adapter';
 import { AgentOrchestratorService } from '../../application/services';
 import { getQueueService, ingestionJobProcessorConfig } from '../queue';
 import { LoggerAdapter } from '../adapters/logger-adapter';
@@ -21,6 +24,13 @@ import {
   IngestDocumentUseCase,
   RegisterUserUseCase,
   LoginUserUseCase,
+  ForgotPasswordUseCase,
+  ResetPasswordUseCase,
+  ChangePasswordUseCase,
+  CreateApiKeyUseCase,
+  ListApiKeysUseCase,
+  RevokeApiKeyUseCase,
+  ValidateApiKeyUseCase,
   CreateToolUseCase,
   ListUserToolsUseCase,
   GetToolByIdUseCase,
@@ -68,12 +78,15 @@ export class DIContainer {
   static readonly billingRepo = new MongoBillingRepository();
   static readonly couponRepo = new MongoCouponRepository();
   static readonly feedbackRepo = new MongoFeedbackRepository();
+  static readonly passwordResetRepo = new MongoPasswordResetRepository();
+  static readonly apiKeyRepo = new MongoApiKeyRepository();
 
   // Adapters for internal services
   static readonly memoryService = new MemoryServiceAdapter();
   static readonly ragService = new RagServiceAdapter();
   static readonly passwordHasher = new BcryptPasswordHasher();
   static readonly tokenService = new JwtTokenService();
+  static readonly emailService = new NodemailerAdapter();
 
   // LLM & Vector Store
   static getVercelAiAdapter() {
@@ -116,6 +129,27 @@ export class DIContainer {
     this.passwordHasher,
     this.tokenService,
   );
+  static readonly forgotPassword = new ForgotPasswordUseCase(
+    this.userRepo,
+    this.emailService,
+    this.passwordResetRepo,
+  );
+  static readonly resetPassword = new ResetPasswordUseCase(
+    this.userRepo,
+    this.passwordHasher,
+    this.passwordResetRepo,
+  );
+  static readonly changePassword = new ChangePasswordUseCase(
+    this.userRepo,
+    this.passwordHasher,
+  );
+  static readonly createApiKey = new CreateApiKeyUseCase(
+    this.apiKeyRepo,
+    this.passwordHasher,
+  );
+  static readonly listApiKeys = new ListApiKeysUseCase(this.apiKeyRepo);
+  static readonly revokeApiKey = new RevokeApiKeyUseCase(this.apiKeyRepo);
+  static readonly validateApiKey = new ValidateApiKeyUseCase(this.apiKeyRepo);
 
   // Use Cases - Billing
   static readonly getBalance = new GetBalanceUseCase(this.billingRepo, this.userRepo);

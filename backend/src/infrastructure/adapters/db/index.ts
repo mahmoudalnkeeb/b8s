@@ -5,3 +5,5 @@ export * from './mongo-user-repo';
 export * from './mongo-kb-repo';
 export * from './mongo-billing-repo';
 export * from './mongo-feedback-repo';
+export * from './mongo-password-reset-repo';
+export * from './mongo-api-key-repo';

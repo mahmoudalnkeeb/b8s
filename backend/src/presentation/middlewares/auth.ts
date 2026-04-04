@@ -7,28 +7,70 @@ export interface AuthRequest extends Request {
   user?: {
     userId: string;
     email: string;
+    role?: string;
+    authType: 'jwt' | 'api-key';
   };
 }
 
 export const authMiddleware = {
-  authenticate: (req: AuthRequest, res: Response, next: NextFunction) => {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-
-    const token = authHeader.split(' ')[1];
-
+  authenticate: async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const secret = authConfig.jwt.secret as string;
-      const decoded = jwt.verify(token as string, secret as string) as unknown as {
-        userId: string;
-        email: string;
-      };
-      req.user = decoded;
-      return next();
-    } catch {
+      // Check for Bearer token
+      const authHeader = req.headers.authorization;
+      
+      // Check for API key
+      const apiKey = req.headers['x-api-key'] as string | undefined;
+      
+      if (authHeader?.startsWith('Bearer ')) {
+        // JWT authentication
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+          return res.status(401).json({ error: 'Invalid token format' });
+        }
+        const secret = authConfig.jwt.secret as string;
+        const decoded = jwt.verify(token, secret) as unknown as {
+          userId: string;
+          email: string;
+        };
+        
+        req.user = {
+          userId: decoded.userId,
+          email: decoded.email,
+          authType: 'jwt',
+        };
+        return next();
+      } else if (apiKey) {
+        // API key authentication
+        const validatedKey = await DIContainer.validateApiKey.execute(apiKey);
+        
+        if (!validatedKey) {
+          return res.status(401).json({ error: 'Invalid API key' });
+        }
+        
+        // Get user from key
+        const user = await DIContainer.userRepo.findById(validatedKey.userId);
+        if (!user) {
+          return res.status(401).json({ error: 'User not found' });
+        }
+        
+        const reqUser: AuthRequest['user'] = {
+          userId: user.userId,
+          email: user.email,
+          authType: 'api-key',
+        };
+        if (user.role) {
+          reqUser.role = user.role;
+        }
+        req.user = reqUser;
+        
+        // Update last used
+        await DIContainer.apiKeyRepo.updateLastUsed(validatedKey.keyId);
+        
+        return next();
+      }
+      
+      return res.status(401).json({ error: 'Unauthorized' });
+    } catch (error) {
       return res.status(401).json({ error: 'Invalid token' });
     }
   },

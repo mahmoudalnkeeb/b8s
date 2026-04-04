@@ -1,19 +1,37 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { Button } from '@/components/ui/button'
-import { User, Lock, Key, CreditCard } from 'lucide-react'
+import { User, Lock, Key, CreditCard, Plus, Trash2, Copy, AlertCircle } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useBillingBalance, useRedeemCoupon } from '../api/billing'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useChangePassword, useApiKeys, useCreateApiKey, useRevokeApiKey } from '../api/auth'
+import { useAuth } from '../hooks/use-auth'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
 })
 
 function SettingsPage() {
+  const { user } = useAuth()
   const { data: billing } = useBillingBalance()
   const redeemCoupon = useRedeemCoupon()
+  const changePassword = useChangePassword()
+  const { data: apiKeys, isLoading: isLoadingKeys } = useApiKeys()
+  const createApiKey = useCreateApiKey()
+  const revokeApiKey = useRevokeApiKey()
+  
   const [couponCode, setCouponCode] = useState('')
+  
+  // Change password state
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  
+  // API key creation state
+  const [isCreatingKey, setIsCreatingKey] = useState(false)
+  const [newKeyValue, setNewKeyValue] = useState<string | null>(null)
+  const [newKeyName, setNewKeyName] = useState('')
 
   const handleRedeem = async () => {
     if (!couponCode.trim()) return
@@ -24,6 +42,60 @@ function SettingsPage() {
     } catch (err: any) {
       toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Invalid coupon code')
     }
+  }
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+    
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    
+    try {
+      await changePassword.mutateAsync({ currentPassword, newPassword })
+      toast.success('Password changed successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Failed to change password')
+    }
+  }
+
+  const handleCreateApiKey = async () => {
+    if (!newKeyName.trim()) {
+      toast.error('Please enter a name for the API key')
+      return
+    }
+    
+    try {
+      const result = await createApiKey.mutateAsync(newKeyName.trim())
+      setNewKeyValue(result.key)
+      setNewKeyName('')
+      setIsCreatingKey(false)
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Failed to create API key')
+    }
+  }
+
+  const handleRevokeApiKey = async (keyId: string) => {
+    try {
+      await revokeApiKey.mutateAsync(keyId)
+      toast.success('API key revoked')
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || err?.response?.data?.error || 'Failed to revoke API key')
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success('Copied to clipboard')
   }
 
   const totalCU = ((billing?.cuBalance || 0) + (billing?.grantedCuBalance || 0)).toFixed(4)
@@ -56,9 +128,17 @@ function SettingsPage() {
             <User className="h-4 w-4 text-primary" />
             <h2 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">Profile</h2>
           </div>
-          <p className="font-sans text-sm text-foreground/40 font-light mb-4">Update your personal information.</p>
-          <p className="font-mono text-[10px] text-foreground/20 uppercase tracking-widest mb-4">Coming soon</p>
-          <Button variant="outline" disabled>Edit Profile</Button>
+          <p className="font-sans text-sm text-foreground/40 font-light mb-4">Your personal information.</p>
+          <div className="flex gap-4 text-sm">
+            <div>
+              <span className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest">Name: </span>
+              <span className="text-foreground">{user?.name || 'N/A'}</span>
+            </div>
+            <div>
+              <span className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest">Email: </span>
+              <span className="text-foreground">{user?.email || 'N/A'}</span>
+            </div>
+          </div>
         </div>
 
         {/* Security */}
@@ -67,17 +147,152 @@ function SettingsPage() {
             <Lock className="h-4 w-4 text-red-400/60" />
             <h2 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">Security</h2>
           </div>
-          <p className="font-sans text-sm text-foreground/40 font-light mb-4">Manage your password and authentication.</p>
-          <Button variant="outline">Change Password</Button>
+          <p className="font-sans text-sm text-foreground/40 font-light mb-4">Change your password.</p>
+          
+          <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+            <div>
+              <label htmlFor="current-password" className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest block mb-2">Current Password</label>
+              <input
+                id="current-password"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="w-full bg-background border border-border text-foreground font-mono text-xs px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors rounded-none"
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="new-password" className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest block mb-2">New Password</label>
+              <input
+                id="new-password"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="w-full bg-background border border-border text-foreground font-mono text-xs px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors rounded-none"
+                minLength={8}
+                required
+              />
+            </div>
+            <div>
+              <label htmlFor="confirm-password" className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest block mb-2">Confirm Password</label>
+              <input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full bg-background border border-border text-foreground font-mono text-xs px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors rounded-none"
+                minLength={8}
+                required
+              />
+            </div>
+            <Button 
+              type="submit" 
+              disabled={changePassword.isPending}
+              className="bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest px-6 py-2.5 hover:bg-foreground hover:text-background transition-colors disabled:opacity-50 border-none cursor-pointer rounded-none"
+            >
+              {changePassword.isPending ? 'Changing...' : 'Change Password'}
+            </Button>
+          </form>
         </div>
 
         {/* API Keys */}
-        <div className="bg-card p-8 opacity-60">
+        <div className="bg-card p-8 hover:bg-secondary transition-colors">
           <div className="flex items-center gap-3 mb-4">
             <Key className="h-4 w-4 text-yellow-400/60" />
             <h2 className="font-sans font-black text-lg text-foreground uppercase tracking-tight">API Keys</h2>
           </div>
-          <p className="font-sans text-sm text-foreground/40 font-light">Developer API access is coming in the next version.</p>
+          <p className="font-sans text-sm text-foreground/40 font-light mb-4">Manage your API keys for programmatic access.</p>
+          
+          {/* Show new key once */}
+          {newKeyValue && (
+            <div className="mb-6 p-4 bg-primary/10 border border-primary/30">
+              <div className="flex items-center gap-2 mb-2">
+                <AlertCircle className="h-4 w-4 text-primary" />
+                <span className="font-mono text-[10px] text-primary uppercase tracking-widest">Copy your API key now - it won't be shown again</span>
+              </div>
+              <div className="flex gap-2">
+                <code className="flex-1 bg-background px-3 py-2 font-mono text-xs text-foreground break-all">{newKeyValue}</code>
+                <button 
+                  onClick={() => copyToClipboard(newKeyValue)}
+                  className="p-2 bg-primary text-primary-foreground hover:bg-foreground hover:text-background transition-colors border-none cursor-pointer rounded-none"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+                <button 
+                  onClick={() => setNewKeyValue(null)}
+                  className="px-3 py-2 bg-secondary text-foreground font-mono text-[10px] uppercase tracking-widest hover:bg-foreground/10 transition-colors border-none cursor-pointer rounded-none"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* Create new key form */}
+          {isCreatingKey && !newKeyValue && (
+            <div className="mb-6 p-4 bg-secondary">
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newKeyName}
+                  onChange={(e) => setNewKeyName(e.target.value)}
+                  placeholder="Enter a name for this key"
+                  className="flex-1 bg-background border border-border text-foreground font-mono text-xs px-3 py-2.5 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors rounded-none"
+                />
+                <button 
+                  onClick={handleCreateApiKey}
+                  disabled={createApiKey.isPending}
+                  className="px-4 py-2 bg-primary text-primary-foreground font-mono text-[10px] uppercase tracking-widest hover:bg-foreground hover:text-background transition-colors disabled:opacity-50 border-none cursor-pointer rounded-none"
+                >
+                  {createApiKey.isPending ? 'Creating...' : 'Create'}
+                </button>
+                <button 
+                  onClick={() => { setIsCreatingKey(false); setNewKeyName(''); }}
+                  className="px-4 py-2 bg-secondary text-foreground font-mono text-[10px] uppercase tracking-widest hover:bg-foreground/10 transition-colors border-none cursor-pointer rounded-none"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
+          
+          {/* API Keys list */}
+          <div className="space-y-3">
+            {isLoadingKeys ? (
+              <p className="font-mono text-[10px] text-foreground/30 uppercase tracking-widest">Loading...</p>
+            ) : apiKeys && apiKeys.length > 0 ? (
+              apiKeys.map((key) => (
+                <div key={key.keyId} className="flex items-center justify-between p-4 bg-secondary border border-border">
+                  <div>
+                    <p className="font-mono text-sm text-foreground">{key.name}</p>
+                    <p className="font-mono text-[10px] text-foreground/40 uppercase tracking-widest">
+                      {key.keyPrefix} • Created {new Date(key.createdAt).toLocaleDateString()}
+                      {key.lastUsedAt && ` • Last used ${new Date(key.lastUsedAt).toLocaleDateString()}`}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => handleRevokeApiKey(key.keyId)}
+                    disabled={revokeApiKey.isPending}
+                    className="p-2 text-foreground/40 hover:text-red-400 transition-colors border-none cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="font-mono text-[10px] text-foreground/30 uppercase tracking-widest">No API keys yet</p>
+            )}
+            
+            {!isCreatingKey && !newKeyValue && (
+              <button 
+                onClick={() => setIsCreatingKey(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-secondary text-foreground font-mono text-[10px] uppercase tracking-widest hover:bg-foreground/10 transition-colors border-none cursor-pointer rounded-none"
+              >
+                <Plus className="h-4 w-4" />
+                Create New Key
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Billing */}
