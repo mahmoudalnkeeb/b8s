@@ -125,8 +125,19 @@ export class MongoKnowledgeBaseRepository implements IKnowledgeBaseRepository {
 
   async findLatestJobByAgentId(agentId: string): Promise<IIngestionJob | null> {
     try {
-      const job = await IngestionJobModel.findOne({ agentId }).sort({ createdAt: -1 });
-      return job ? this.mapJobToDomain(job) : null;
+      // First, try to find active jobs (pending or processing)
+      const activeJob = await IngestionJobModel.findOne({
+        agentId,
+        status: { $in: [JobStatus.PENDING, JobStatus.PROCESSING] },
+      }).sort({ createdAt: -1 });
+
+      if (activeJob) {
+        return this.mapJobToDomain(activeJob);
+      }
+
+      // If no active job, return null so frontend shows upload UI
+      // (don't show completed/failed jobs - they should trigger new upload)
+      return null;
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       throw new DatabaseError(message, 'MONGO_FIND_LATEST_INGESTION_JOB_ERROR');

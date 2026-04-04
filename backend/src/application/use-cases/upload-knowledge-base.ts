@@ -2,8 +2,9 @@ import { randomUUID } from 'crypto';
 import { IKnowledgeBaseRepository } from '../../domain/ports/knowledge-base-repository';
 import { IAgentRepository } from '../../domain/ports/agent-repository';
 import { JobStatus } from '../../domain/models';
-import { NotFoundError, UnauthorizedError } from '../../domain/errors';
+import { NotFoundError, UnauthorizedError, BadRequestError } from '../../domain/errors';
 import type { QueueService } from '../../infrastructure/queue/queue-service';
+import { logger } from '../../infrastructure/utils/logger';
 
 export interface UploadKnowledgeBaseRequest {
   agentId: string;
@@ -91,12 +92,37 @@ export class UploadKnowledgeBaseUseCase {
     mimeType: string,
     buffer: Buffer,
   ): Promise<string> {
-    if (fileName.toLowerCase().endsWith('.pdf') || mimeType === 'application/pdf') {
-      const pdfParse = await import('pdf-parse');
-      const parser = new pdfParse.PDFParse({ data: buffer });
-      const parsed = await parser.getText();
-      return parsed.text;
+    // Extract extension properly (handles double dots like 'file..pdf')
+    const ext = fileName.toLowerCase().split('.').pop();
+    const isPdf = ext === 'pdf' || mimeType === 'application/pdf';
+
+    if (isPdf) {
+      // Validate PDF header
+      const pdfHeader = buffer.slice(0, 5).toString();
+      if (pdfHeader !== '%PDF-') {
+        logger.warn('Invalid PDF file uploaded', { fileName, header: pdfHeader });
+        throw new BadRequestError(
+          'Invalid PDF file. The file must be a valid PDF document.',
+          'INVALID_PDF',
+        );
+      }
+
+      try {
+        const pdfParse = await import('pdf-parse');
+        const parser = new pdfParse.PDFParse({ data: buffer });
+        const parsed = await parser.getText();
+        return parsed.text;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        logger.error('PDF parsing failed', { fileName, error: message });
+        throw new BadRequestError(
+          'Failed to parse PDF file. The file may be corrupted, password-protected, or in an unsupported format.',
+          'PDF_PARSE_ERROR',
+        );
+      }
     }
+
+    // Default: return buffer as utf-8 string
     return buffer.toString('utf-8');
   }
 }

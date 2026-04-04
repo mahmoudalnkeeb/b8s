@@ -230,14 +230,20 @@ export const useLatestJobStatus = (agentId: string) => {
     queryFn: () => agentsApi.getLatestJobStatus(agentId),
     enabled: !!agentId,
     refetchInterval: (query) => {
-      const data = query.state.data as any
-      if (data?.status === 'completed' || data?.status === 'failed') {
-        if (data?.status === 'completed') {
-          queryClient.invalidateQueries({ queryKey: ['agents', agentId, 'kb'] })
-        }
+      const data = query.state.data
+      // Stop polling if no active job (backend returns null for completed/failed)
+      if (!data) {
         return false
       }
-      return 2000
+      // Poll while job is pending or processing
+      if (data.status === 'pending' || data.status === 'processing') {
+        return 2000
+      }
+      // Stop polling for completed/failed (shouldn't happen with new backend, but safety check)
+      if (data.status === 'completed') {
+        queryClient.invalidateQueries({ queryKey: ['agents', agentId, 'kb'] })
+      }
+      return false
     },
   })
 }
