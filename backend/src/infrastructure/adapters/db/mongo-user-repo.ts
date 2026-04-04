@@ -59,7 +59,7 @@ export class MongoUserRepository implements IUserRepository {
       const doc = await UserModel.findOneAndUpdate(
         { userId },
         { $set: updates },
-        { returnDocument: 'after' }
+        { returnDocument: 'after' },
       );
       return doc ? this.mapToDomain(doc) : null;
     } catch (error: unknown) {

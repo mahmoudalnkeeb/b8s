@@ -18,10 +18,10 @@ export const authMiddleware = {
     try {
       // Check for Bearer token
       const authHeader = req.headers.authorization;
-      
+
       // Check for API key
       const apiKey = req.headers['x-api-key'] as string | undefined;
-      
+
       if (authHeader?.startsWith('Bearer ')) {
         // JWT authentication
         const token = authHeader.split(' ')[1];
@@ -33,7 +33,7 @@ export const authMiddleware = {
           userId: string;
           email: string;
         };
-        
+
         req.user = {
           userId: decoded.userId,
           email: decoded.email,
@@ -43,17 +43,17 @@ export const authMiddleware = {
       } else if (apiKey) {
         // API key authentication
         const validatedKey = await DIContainer.validateApiKey.execute(apiKey);
-        
+
         if (!validatedKey) {
           return res.status(401).json({ error: 'Invalid API key' });
         }
-        
+
         // Get user from key
         const user = await DIContainer.userRepo.findById(validatedKey.userId);
         if (!user) {
           return res.status(401).json({ error: 'User not found' });
         }
-        
+
         const reqUser: AuthRequest['user'] = {
           userId: user.userId,
           email: user.email,
@@ -63,17 +63,19 @@ export const authMiddleware = {
           reqUser.role = user.role;
         }
         req.user = reqUser;
-        
+
         // Update last used
         await DIContainer.apiKeyRepo.updateLastUsed(validatedKey.keyId);
-        
+
         return next();
       }
-      
+
       return res.status(401).json({ error: 'Unauthorized' });
     } catch (error) {
-      logger.error('Auth middleware error', { error: error instanceof Error ? error.message : String(error) });
-      
+      logger.error('Auth middleware error', {
+        error: error instanceof Error ? error.message : String(error),
+      });
+
       // Differentiate between auth errors and system errors
       if (error instanceof jwt.JsonWebTokenError) {
         return res.status(401).json({ error: 'Invalid or expired token' });
@@ -81,7 +83,7 @@ export const authMiddleware = {
       if (error instanceof jwt.TokenExpiredError) {
         return res.status(401).json({ error: 'Token has expired' });
       }
-      
+
       // For other errors, return a generic message but log the details
       return res.status(401).json({ error: 'Authentication failed' });
     }

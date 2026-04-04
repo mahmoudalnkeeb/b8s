@@ -7,14 +7,14 @@ export class ValidateApiKeyUseCase {
   async execute(plainKey: string): Promise<{ keyId: string; userId: string } | null> {
     // Hash the provided key
     const keyHash = createHash('sha256').update(plainKey).digest('hex');
-    
+
     // Find by hash
     const apiKey = await this.apiKeyRepo.findByKeyHash(keyHash);
-    
+
     if (!apiKey) {
       return null;
     }
-    
+
     return {
       keyId: apiKey.keyId,
       userId: apiKey.userId,

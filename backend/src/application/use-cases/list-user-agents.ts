@@ -20,7 +20,7 @@ export class ListUserAgentsUseCase {
 
   async execute(params: ListUserAgentsParams): Promise<ListUserAgentsResult> {
     const { userId, limit = 20, offset = 0, search = '' } = params;
-    
+
     const [agents, total] = await Promise.all([
       this.agentRepo.findByOwnerIdWithPagination(userId, { limit, offset, search }),
       this.agentRepo.countByOwnerId(userId, search),

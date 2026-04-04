@@ -139,13 +139,8 @@ export class DIContainer {
     this.passwordHasher,
     this.passwordResetRepo,
   );
-  static readonly changePassword = new ChangePasswordUseCase(
-    this.userRepo,
-    this.passwordHasher,
-  );
-  static readonly createApiKey = new CreateApiKeyUseCase(
-    this.apiKeyRepo,
-  );
+  static readonly changePassword = new ChangePasswordUseCase(this.userRepo, this.passwordHasher);
+  static readonly createApiKey = new CreateApiKeyUseCase(this.apiKeyRepo);
   static readonly listApiKeys = new ListApiKeysUseCase(this.apiKeyRepo);
   static readonly revokeApiKey = new RevokeApiKeyUseCase(this.apiKeyRepo);
   static readonly validateApiKey = new ValidateApiKeyUseCase(this.apiKeyRepo);

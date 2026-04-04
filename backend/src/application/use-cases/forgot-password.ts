@@ -15,18 +15,18 @@ export class ForgotPasswordUseCase {
 
   async execute(request: ForgotPasswordRequest): Promise<void> {
     const user = await this.userRepo.findByEmail(request.email);
-    
+
     // Always return success to prevent email enumeration
     // If user exists, send reset email; otherwise, silently fail
-    
+
     if (user) {
       // Delete any existing reset tokens for this user
       await this.passwordResetRepo.deleteByUserId(user.userId);
-      
+
       // Generate reset token
       const token = randomBytes(32).toString('hex');
       const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-      
+
       await this.passwordResetRepo.create({
         token,
         userId: user.userId,
@@ -34,10 +34,10 @@ export class ForgotPasswordUseCase {
         used: false,
         createdAt: new Date(),
       });
-      
+
       // Send reset email
       const resetUrl = `${env.NODE_ENV === 'production' ? 'https://b8s.com' : 'http://localhost:3001'}/auth/reset-password/${token}`;
-      
+
       const html = this.getPasswordResetEmailHtml(user.name, resetUrl);
       await this.emailService.sendEmail(user.email, 'Reset your B8s password', html);
     }

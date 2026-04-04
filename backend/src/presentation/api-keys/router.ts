@@ -21,16 +21,16 @@ const controller = {
     try {
       const userId = req.user!.userId;
       const { name } = req.body;
-      
+
       if (!name || typeof name !== 'string' || name.trim().length < 1) {
         return res.status(400).json({ error: 'Name is required' });
       }
-      
+
       const result = await DIContainer.createApiKey.execute({
         userId,
         name: name.trim(),
       });
-      
+
       return res.status(201).json(result);
     } catch (error) {
       return next(error);
@@ -41,11 +41,11 @@ const controller = {
     try {
       const userId = req.user!.userId;
       const keyId = req.params['keyId'] as string;
-      
+
       if (!keyId) {
         return res.status(400).json({ error: 'Key ID is required' });
       }
-      
+
       await DIContainer.revokeApiKey.execute(keyId, userId);
       return res.status(204).send();
     } catch (error) {

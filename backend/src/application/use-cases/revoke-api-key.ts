@@ -6,7 +6,7 @@ export class RevokeApiKeyUseCase {
 
   async execute(keyId: string, userId: string): Promise<void> {
     const revoked = await this.apiKeyRepo.revoke(keyId, userId);
-    
+
     if (!revoked) {
       throw new NotFoundError('API key not found', 'API_KEY_NOT_FOUND');
     }

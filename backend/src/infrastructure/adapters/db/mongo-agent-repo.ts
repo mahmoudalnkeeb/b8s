@@ -76,7 +76,7 @@ export class MongoAgentRepository implements IAgentRepository {
   async findByOwnerIdWithPagination(ownerId: string, params: PaginationParams): Promise<IAgent[]> {
     try {
       const query: Record<string, unknown> = { ownerId };
-      
+
       if (params.search) {
         const escaped = params.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         query['$or'] = [
@@ -99,7 +99,7 @@ export class MongoAgentRepository implements IAgentRepository {
   async countByOwnerId(ownerId: string, search: string): Promise<number> {
     try {
       const query: Record<string, unknown> = { ownerId };
-      
+
       if (search) {
         const escaped = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         query['$or'] = [

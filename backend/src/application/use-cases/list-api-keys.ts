@@ -5,7 +5,7 @@ export class ListApiKeysUseCase {
 
   async execute(userId: string) {
     const apiKeys = await this.apiKeyRepo.findByUserId(userId);
-    
+
     return apiKeys.map((key) => ({
       keyId: key.keyId,
       name: key.name,

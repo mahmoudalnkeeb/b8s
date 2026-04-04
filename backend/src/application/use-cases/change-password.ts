@@ -19,19 +19,25 @@ export class ChangePasswordUseCase {
     if (!user) {
       throw new UnauthorizedError('User not found', 'USER_NOT_FOUND');
     }
-    
+
     // Verify current password
     const isValid = await this.passwordHasher.compare(request.currentPassword, user.passwordHash);
     if (!isValid) {
       throw new UnauthorizedError('Current password is incorrect', 'INVALID_PASSWORD');
     }
-    
+
     // Verify new password is different from current
-    const isSamePassword = await this.passwordHasher.compare(request.newPassword, user.passwordHash);
+    const isSamePassword = await this.passwordHasher.compare(
+      request.newPassword,
+      user.passwordHash,
+    );
     if (isSamePassword) {
-      throw new BadRequestError('New password must be different from current password', 'SAME_PASSWORD');
+      throw new BadRequestError(
+        'New password must be different from current password',
+        'SAME_PASSWORD',
+      );
     }
-    
+
     // Hash new password and update
     const passwordHash = await this.passwordHasher.hash(request.newPassword);
     await this.userRepo.update(request.userId, { passwordHash });

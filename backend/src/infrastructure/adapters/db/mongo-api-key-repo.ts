@@ -67,7 +67,7 @@ export class MongoApiKeyRepository implements IApiKeyRepository {
     try {
       const result = await ApiKeyModel.updateOne(
         { keyId, userId, revokedAt: null },
-        { $set: { revokedAt: new Date() } }
+        { $set: { revokedAt: new Date() } },
       );
       return result.modifiedCount > 0;
     } catch (error: unknown) {

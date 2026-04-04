@@ -1,4 +1,7 @@
-import { IPasswordResetRepository, IPasswordResetToken } from '../../../domain/ports/password-reset-repository';
+import {
+  IPasswordResetRepository,
+  IPasswordResetToken,
+} from '../../../domain/ports/password-reset-repository';
 import { PasswordResetTokenModel } from '../../db/models';
 import { DatabaseError } from '../../../domain/errors';
 

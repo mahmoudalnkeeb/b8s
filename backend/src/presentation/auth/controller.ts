@@ -1,5 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
-import { registerDto, loginDto, forgotPasswordDto, resetPasswordDto, changePasswordDto } from './dto';
+import {
+  registerDto,
+  loginDto,
+  forgotPasswordDto,
+  resetPasswordDto,
+  changePasswordDto,
+} from './dto';
 import { logger } from '../../infrastructure/utils/logger';
 import { DIContainer } from '../../infrastructure/di/container';
 import { AuthRequest } from '../middlewares/auth';

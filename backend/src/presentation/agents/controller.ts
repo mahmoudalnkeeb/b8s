@@ -95,11 +95,11 @@ export class AgentController {
       const offset = parseInt(req.query['offset'] as string) || 0;
       const search = req.query['search'] as string | undefined;
 
-      const result = await DIContainer.listUserAgents.execute({ 
-        userId, 
-        limit, 
-        offset, 
-        search: search || '' 
+      const result = await DIContainer.listUserAgents.execute({
+        userId,
+        limit,
+        offset,
+        search: search || '',
       });
       return res.status(200).json(result);
     } catch (error) {
